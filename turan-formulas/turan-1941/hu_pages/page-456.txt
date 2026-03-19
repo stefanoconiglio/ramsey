@@ -1,0 +1,42 @@
+440
+
+T UBÁN P Á L.
+
+A gráf olyan tulajdonságú, hogy bárhogy veszek is ki a szög­
+pontokból 3 különbözőt, ezek közül lesz legalább két olyan
+szögpont, melyeket összekötő él benne van A-ban, akkor Á-nak
+biztosan van végtelen teljes részgráfja.7 II. tételünk ennek álta­
+lánosítása, amennyiben biztosítjuk minden olyan, megszámlálhatóan végtelen sok szögpontú B gráfban egy végtelen sok szög­
+pontú teljes részgráf létezését, melyhez van olyan pozitív egész
+d szám, hogy d 2 és bárhogyan veszünk is ki B szögpontjai
+közül d számú különbözőt, ezek között van legalább két olyan
+szögpont, melyeket összekötő él benne van B-ben. Ez d — 3-ra
+Szekekes fenti tétele.
+Érdekes feladat volna a II. tétel véges analogonját megtalálni,
+mivel ez véges gráfnál másszerű kritériumot adna teljes részgráf
+létezésére, mint az I. tétel. A II. tétel véges analogonja alatt pon­
+tosabban a következőkét értjük. Legyen adva az n szögpontú
+C gráf, amélyhez van egy olyan, n-nél kisebb, pozitív egész
+d szám, hogy a szögpontokból bárhogy véve is ki d számú
+különbözőt, ezek között van legalább két olyan szögpont, melye­
+ket összekötő él C-nek éle. Ekkor hány szögpontú teljes rész­
+gráf létezését tudjuk biztosítani? E kérdés tisztázására máshelyütt
+szeretnék visszatérni; egyelőre a d = ‘i esetben annyit sikerült
+kimutatnom, hogy, ha s a legnagyobb egész szám, melyre még
+■S^S
+
+^ <; n, akkor a gráf biztosan tartalmaz s szögpontú tel­
+
+jes részgráfot. Ennek bizonyítását nem részletezzük.
+Az I. tétel egy másik érdekes kérdésre is rögtön választ ad.
+Egy teljes n-szögben minden teljes k-szöget reprezentáljunk egy
+élével; természetesen k ^ n . Ezen reprezentálás nyilván nagyon
+sokféleképp vihető keresztül. Keresendő azonban azon reprezentálási mód, mely a lehető legkevesebb számú éllel reprezentál.
+A kérdés úgy is kifejezhető, hogy égy adott egész k számhoz,
+melyre 3 gLk < .n, keresendő az n szögpontú teljes gráf oly éleinek
+7
+M int S zekeres G yörgy levélileg közölte, ily en típ u sú gráfokhoz a
+a nevezetes BüRNSiDE-féle csoportelm életi problém ának, ill. ennek egy,
+G rünwald GÉzÁtól eredő m ó d osított a lak ján ak vizsg álata közben ju to tt.
+
+

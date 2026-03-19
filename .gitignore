@@ -1,0 +1,14 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Latex
+*.aux
+*.log
+*.pdf
+
+# Misc
+trash/
+DUMP*
+*.lp

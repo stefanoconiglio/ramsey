@@ -1,0 +1,40 @@
+EG Y G R Á F E L M É L E T I SZÉ LS ŐÉ RT ÉKF E LAD ATR ÓL.
+
+437
+
+ki. Ha például az A gráf szögpontjai Pv P% és P3, élei pedig
+P J \ és PtP.j, akkor az Ä gráf szögpontjai P„ és P3, egyetlen
+éle pedig P 2P3. Ezzel már ismertettük a gráfelmélet azon alap­
+fogalmait, amelyek a későbbiekben szerepelnek.
+A kérdés, amivel foglalkozunk, szemléletes interpretációban
+a következő : n-számú játékos egyszeri körmérkőzést játszik, mely
+N számú mérkőzés lejátszása után abbamarad. Milyen nagynak
+kell lenni a lejátszott játszmák N számának, hogy biztosan
+következtetni tudjunk arra, hogy a játékosok között van legalább
+k játékos, akik egymás közt lejátszották a körmérkőzést? Ter­
+mészetesen n, k, N -re feltesszük, hogy
+3 ^ ík ^ n ,
+Ha minden játékosnak rendre megfeleltetjük a különböző
+P v P 2,..., P „ pontokat és a P i t P j
+pontokat akkor és csak akkor
+kötjük össze egyetlen éllel, ha az i-ik és j-ik játékosok mérkő­
+zése szerepelt a lejátszott N mérkőzés között, akkor egy n
+szögpontú A gráfot nyerünk, melyben N él szerepel és melynek
+van egy k szögpontú teljes részgráfja. Ekkor kérdésünk úgy is
+fogalmazható, hogy milyen nagynak kell lenni IV-nek, hogy az
+n számú szögpont között bárhogyan húzok is meg N számú
+élt, a kapott gráfban biztosan legyen k szögpontú teljes rész­
+gráf. Egy harmadik, nyilván az előbbivel egyenértékű fogalmazás,
+a következő: a P v P a > . .., JR„ szögpontú gráfban legfeljebb hány
+él szerepelhet, ha a gráfnak nines le szögpontú teljes részgráfja?
+Ezen maximális élszám természetesen csak »-tői és k-tói függ ; ha
+ezt Mk(n)-nel jelöljük, akkor minden n szögpontú gráfban,
+melyben legalább Mk(ri) -f- 1 él szerepel, biztosan létezik k szög­
+pontú teljes részgráf. Feladatunk tehát ezen Mán) meghatáro­
+zása; ez fogja jelenteni azt a szélsőértékfeladatot, melyre a
+dolgozat címe vonatkozik.
+Vizsgálatunkban nagy szerepe lesz egy speciális gráfnak, melyet
+D(n, á'j-val fogunk jelölni, éleinek számát pedig dán)-nel. E grá­
+fot a következő, látszólag mesterkélt módon értelmezzük. Osszuk
+
+

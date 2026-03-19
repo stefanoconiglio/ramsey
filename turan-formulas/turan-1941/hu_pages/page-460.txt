@@ -1,0 +1,47 @@
+444
+
+TÚRÁN P Á L .
+
+juk (2 ) táblázat első oszlopának «-értékeire, azután külön
+minden egyes sorra. A bizonyítási módszer jobb kiemelése
+végett e logikai sorrendet idó'belileg megfordítjuk és előbb —
+feltételezve, hogy a tétel az első oszlop elemeire már igazolva
+van — bebizonyítjuk minden egyes sorra, azután pedig minden
+feltételes állítástól függetlenül az első oszlop «-értékeire.
+Tekintsük tehát (2) táblázat azon sorát, melyben az « = (&—l j f + r
+alakú értékek vannak, hol r fix és t változik. Tegyük fel, hogy
+a tétel már t ^ T - r e igazolva van és be akarjuk bizonyítani
+t = (T + l)-re, azaz n = (lc — 1) (T + 1) -)- r-re ; itt T ^ . 1, ha
+1 <g r <; (le — 2) és T ;> 2, ha r — 0 mint az a (2) táblázatból lát­
+ható. Tekintsük a c) alatti egyenlőtlenséget n —
+rel és vizsgáljuk, mikor helyettesíthető benne a <s jel egyenlő­
+séggel. Mint ott kiemeltük, csak a második és harmadik tagot
+kell e szempontból megvizsgálni. A harmadik tagnál nyilván
+akkor és csak akkor nem növeltünk, ha a második részbe tar­
+tozó minden szögpontból épp (k — 2 ) él indul az első részhez
+tartozó szögpontok felé. A második tagban pedig nyilván akkor
+és csak akkor állhat egyenlőség, ha a második részbe tartozó
+szögpontok oly (k — V)T-\-r szögpontú gráfot alkotnak, melyben
+nincs k szögpontú teljes részgráf és élszáma az ilyen gráfok
+között maximális; de ekkor az indukciós feltevésünk alapján
+a második részbe tartozó szögpontok alkotta gráf azonos a
+D (k —1 . T-\- r, k) gráffal, élszáma tehát dk(k — \.T -\-r)- Nyer­
+tük tehát, hogy
+M k{ k ~ \
+
+T + í
+
++ r) £ ( k 2 1) + dk{Í* - ~ l ■T + r) +
++ (k - 2 )( n — k + 1 ).
+
+(3)
+
+Az egyenlőség akkor és csak akkor áll (3)-ban, ha
+a) a második részbe tartozó mindegyik szögpontból épp (k — 2 )
+él indul ki az első részbe tartozók felé és
+ß) a második részbe tartozó szögpontok alkotta gráf azonos
+a D(k — \ . T - \ - r ,k ) gráffal.
+Olyan [(k - 1) (T-(-l)-l-r] szögpontú gráf, mely az a) és ß)
+feltételeket kielégíti, sok van; kimutatjuk azonban, hogy ezek
+
+

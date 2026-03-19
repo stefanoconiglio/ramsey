@@ -1,0 +1,42 @@
+450
+
+TÚRÁN P Á L.
+
+feltesszük, hogy van oly 1-nél nagyobb d egész szám, hogy
+bárhogyan veszünk is ki A szögpontjai közül d számú külön­
+bözőt, ezek között van legalább két oly szögpont, melyeket
+összekötő él benne van A-ban. Ekkor A-nak van legalább egy
+végtelen sok szögpontú, teljes részgráfja.
+A tételt d-re vonatkozó teljes indukcióval bizonyítjuk be.
+d = 2-re a tétel nyilván igaz. Tegyük fel, hogy a tétel d = l-re
+be van bizonyítva és vizsgáljuk a d — l 1 esetet. Legyen Px
+a gráf egy tetszőleges szögpontja. Tegyük fel először, hogy léte­
+zik végtelen sok i \ , ]Jirí, ... különböző pont melyek A-ban f i ­
+gyel nincsenek összekötve. Ekkor azt állítjuk, hogy azon A r vég­
+telen részgráf, melynek szögpontjai épp az előbbi
+szögpontok, olyan tulajdonságú, hogy szögpontjai közül bárhogy
+véve is ki l számú különbözőt, ezek között van legalább két oly
+szögpont, melyeket összekötő él benne van Aj-ben. Ugyanis,
+ha például a Pit, Pia...... Pit szögpontok semelyik párja sem volna
+az Aj gráfban összekötve, akkor a Pv Pit, jR;„ ..., P i( szögpontok­
+nak, tehát (Z-f-1 ) különböző szögpontnak, nyilván az a tulaj­
+donsága volna, hogy semelyik szögpontpár sincs ezek közül
+A-ban összekötve; de ez az A gráf definíciója ellenére van.
+Ekkor azonban az A t gráf az indukciós feltevés alapján tartal­
+maz végtelen sok szögpontú teljes részgráfot; tehát az A gráf
+a fortiori tartalmaz ilyet. Ilymódon csak azon esetet kell még
+megvizsgálni, amikor van oly vt egész szám, hogy a (Pv PH),
+(Pv PVl+i),..., (Pv P„),... élek m ind szerepelnek A-ban. Ekkor
+a PH szögpontra ugyanazt a műveletet végezzük, mint előbb
+Px-re és ugyanúgy nyerjük egy végtelen sok szögpontú teljes
+részgráf létezését az indukciós feltevés alapján, kivéve ismét azt
+az esetet, ha van oly
+> vt egész szám, hogy a (P,,, P V}),
+(Pyv P »1+i),..., (Pn> P«),--- elek m ind szerepelnek A-ban. Ezen
+konstrukció vagy y véges sok lépés után megszakad vagy nem.
+Ha megszakad, akkor a (Pv^, Pvu+i), (PrM, Pt^+a),- ■■ élek között
+van végtelen sok, mely nem éle A -nak; ekkor az indukciós
+feltevés alapján, mint előbb, következik, hogy a Pvß+i, Pv^+'-i,- • •
+szögpontú gráf tartalmaz végtelen sok szögpontú teljes rész­
+
+

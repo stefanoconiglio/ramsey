@@ -1,0 +1,40 @@
+EGY G R Á F E L M É L E T I SZÉ LSÓ'É RTÉKFELADATRÓL.
+
+439
+
+de e tényre a bizonyításban nem lesz szükség. Mivel k — 3
+esetében
+
+azért, az előbbi interpretációban, a mérkőzéseknek több, mint a
+felét le kell játszani ahhoz, hogy biztosan állíthassuk, hogy egy
+hármas körmérkőzés lezajlott.4
+Az I. tétel kritériumot ad arra, hogy egy véges szögpont­
+számú gráfnak legyen k szögpontú teljes részgráfja. Ezen gondolat­
+körbe vágó — tudomásom szerint egyetlen — tétel E rdős P ál
+és Szekeres György egy közös dolgozatában található 5 és lénye­
+gileg úgy fogalmazható, hogy, ha egy n szögpontú A gráf olyan,
+hogy az Ä kiegészítő gráf csak «kevés» szögpontszámú teljes
+részgráfot tartalmaz, akkor maga az A gráf biztosan tartalmaz
+egy «sok» szögpontú teljes részgráfot. Tételük a «kevés» és
+«sok» megjelölések helyén csak becsléseket tartalmaz, sőt majd­
+nem csak az exisztenciát fejezi k i; a megfelelő szélsőértékfeladat pontos megoldása igen érdekesnek, de nehéznek látszik
+éppúgy, mint Grünwald GÉzÁnak ebből folyó következő meg­
+jegyzésének pontosítása: minden pozitív egész n-hez létezik oly
+l — l (n), hogy egy tetszőleges n szögpontú A gráfban, vagy
+Ä-ban mindig van /-szögpontú teljes részgráf.
+Legyen most a vizsgálandó A gráfnak megszámlálható ß,n
+végtelen sok szögpontja, Pt ,P v ... és keressünk kritériumokat
+arra, hogy A-nak biztosan legyen végtelen sok szögpontú teljes
+részgráfja. Az erre vonatkozó egyetlen ismeretes tétel Szekeres
+GYÖRGYt ő l 6 származik és következőképp szól. Ha a vizsgált
+4 Ebből d3(2«)=w2 ; ha tehát a 2n szögpontú gráfban legalább (w2-|-l)
+él szerepel, akkor biztosan van benne teljes 3-szög, n2 él esetén ez nem
+biztos. M int E rdős P ál levélbeli közléséből tudom, H. B ademacher e tételt
+olykópp szigorította, hogy (n2+ l ) él esetén nemcsak egy, hanem m indjárt
+legalább n számú teljes 3-szög van a gráfban. Mint E rdős P ál kim utatta,
+(n2-)- 2) ól esetén a gráfban legalább 2n szám ú teljes 3-szög van.
+5 P. E rdős and Gr. S zekeres : A Combinatorial Problem in Geometry.
+Compositio Mathematica, 1935, vol. 2, p. 463— 470.
+6 Levélbeli közlés.
+
+

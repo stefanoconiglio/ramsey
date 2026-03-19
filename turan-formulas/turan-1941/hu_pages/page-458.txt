@@ -1,0 +1,41 @@
+4 42
+
+TÚRÁN P Á L.
+
+A bizonyításhoz szükség van bárom egyszerű megjegyzésre r
+a) Bebizonyítjuk, hogy Mt(n) > Mv_i(n) (v = 3, 4 , . . n).
+Tekintsünk ugyanis egy E gráfot, melynek n szögpontja,
+Mr_i(w) éle van és nem tartalmaz teljes (v—l)-szöget. Vegyünk
+ebhez hozzá egy élt (ez v ^ n miatt megtehető) és tekintsük a
+kapott E' gráfot, melynél az élek száma tehát
++ 1. Azt
+állítom, hogy az E gráf nem tartalmazhat v szögponlú teljes
+részgráfot. U. i., ha tartalmazna egy v szögpontú teljes részgráfot,
+E"- 1, melynek szögpontjai, a jelölés alkalmas megválasztásával,
+P V P V. . . , P V volnának, akkor két eset képzelhető: E" vagy
+tartalmazza az A-hez hozzátett élt, vagy nem. A második eset
+nyilván nem lehetséges, mert ekkor az E" gráf A’-nek is rész­
+gráfja volna, ami nem lehet, mert A-nek még (v—1) szögpontú
+teljes részgráfja sincs a definíciója szerint. De az első eset is
+lehetetlen; ha ugyanis a hozzátett él benne volna A"-ben és
+ez az él — ami az általánosság rovása nélkül feltehető — épp
+PjjRj volna, akkor a (P2, P3,..., P,) teljes gráf A-nek részgráfja
+volna, ami E definíciójának ellentmond. Tehát az E gráf való­
+ban nem tartalmaz v szögpontú teljes részgráfot, vagyis éleinek
+száma <l: Mv(n). Tehát
+-j- 1 rg Mv(n).
+Q. e. iL
+b) Bebizonyítjuk, hogy a D in, k) gráfnak valóban nincs k
+szögpontú teljes részgráfja.
+Ez egyszerűen onnan következik, hogy a k — 1 számú osztály
+valamelyikébe a k számú szögpont közül legalább kettőnek kell
+esni. De ezen két szögpont a Din, k) gráf definíciója szerint nem
+lehet összekötve.
+c) Bebizonyítjuk, hogy k <^n-re
+M/cin) ^ | *2 j + Micin—k + 1) -f- ik—2 ) (n—k -j- 1).
+Tekintsünk ugyanis egy oly n szögpontú A gráfot, melynek
+nincs k szögpontú teljes részgráfja és melyben az élek száma
+M/cin). Az a) alatti segédtétel szerint A-nak van (/c — 1) szög­
+pontú teljes részgráfja; a jelölést megválaszthatjuk úgy, hogy
+
+

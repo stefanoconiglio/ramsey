@@ -1,0 +1,456 @@
+\documentclass[11pt]{article}
+\usepackage[a4paper,margin=1.8cm]{geometry}
+\usepackage{tikz}
+\usepackage{amsmath}
+\setcounter{MaxMatrixCols}{10}
+\usepackage{amssymb}
+\usepackage{xcolor}
+\pagestyle{empty}
+
+\begin{document}
+\section*{$S=\{0,1,2,5\}$, $m=3$, $t=10$}
+\begin{center}
+$\mathbf{FACET}$
+\end{center}
+$\left\lfloor t/2\right\rfloor=5$
+\quad\quad
+$J=\{1,2,3,4,5\}$
+\quad\quad
+$N=7$
+\quad\quad
+$\operatorname{rank}(Y^{+})=5$
+
+\begin{center}
+\smallskip Complete graph on $V$, with vertices in $S$ and edges in $E(S)$ highlighted in red. $|E(S)|=6$
+
+\begin{minipage}[t]{0.31\textwidth}
+\centering
+\begin{tikzpicture}[
+  thick,
+  baseline=(current bounding box.north),
+  vertex/.style={circle,draw,inner sep=1.2pt,font=\scriptsize},
+  svertex/.style={circle,draw=red,text=red,inner sep=1.2pt,font=\scriptsize}
+]
+  \node[svertex] (v0) at (0.000,1.350) {0};
+  \node[svertex] (v1) at (0.794,1.092) {1};
+  \node[svertex] (v2) at (1.284,0.417) {2};
+  \node[vertex] (v3) at (1.284,-0.417) {3};
+  \node[vertex] (v4) at (0.794,-1.092) {4};
+  \node[svertex] (v5) at (0.000,-1.350) {5};
+  \node[vertex] (v6) at (-0.794,-1.092) {6};
+  \node[vertex] (v7) at (-1.284,-0.417) {7};
+  \node[vertex] (v8) at (-1.284,0.417) {8};
+  \node[vertex] (v9) at (-0.794,1.092) {9};
+  \draw[red] (v0) -- (v1);
+  \draw[red] (v0) -- (v2);
+  \draw[black!45,line width=0.35pt] (v0) -- (v3);
+  \draw[black!45,line width=0.35pt] (v0) -- (v4);
+  \draw[red] (v0) -- (v5);
+  \draw[black!45,line width=0.35pt] (v0) -- (v6);
+  \draw[black!45,line width=0.35pt] (v0) -- (v7);
+  \draw[black!45,line width=0.35pt] (v0) -- (v8);
+  \draw[black!45,line width=0.35pt] (v0) -- (v9);
+  \draw[red] (v1) -- (v2);
+  \draw[black!45,line width=0.35pt] (v1) -- (v3);
+  \draw[black!45,line width=0.35pt] (v1) -- (v4);
+  \draw[red] (v1) -- (v5);
+  \draw[black!45,line width=0.35pt] (v1) -- (v6);
+  \draw[black!45,line width=0.35pt] (v1) -- (v7);
+  \draw[black!45,line width=0.35pt] (v1) -- (v8);
+  \draw[black!45,line width=0.35pt] (v1) -- (v9);
+  \draw[black!45,line width=0.35pt] (v2) -- (v3);
+  \draw[black!45,line width=0.35pt] (v2) -- (v4);
+  \draw[red] (v2) -- (v5);
+  \draw[black!45,line width=0.35pt] (v2) -- (v6);
+  \draw[black!45,line width=0.35pt] (v2) -- (v7);
+  \draw[black!45,line width=0.35pt] (v2) -- (v8);
+  \draw[black!45,line width=0.35pt] (v2) -- (v9);
+  \draw[black!45,line width=0.35pt] (v3) -- (v4);
+  \draw[black!45,line width=0.35pt] (v3) -- (v5);
+  \draw[black!45,line width=0.35pt] (v3) -- (v6);
+  \draw[black!45,line width=0.35pt] (v3) -- (v7);
+  \draw[black!45,line width=0.35pt] (v3) -- (v8);
+  \draw[black!45,line width=0.35pt] (v3) -- (v9);
+  \draw[black!45,line width=0.35pt] (v4) -- (v5);
+  \draw[black!45,line width=0.35pt] (v4) -- (v6);
+  \draw[black!45,line width=0.35pt] (v4) -- (v7);
+  \draw[black!45,line width=0.35pt] (v4) -- (v8);
+  \draw[black!45,line width=0.35pt] (v4) -- (v9);
+  \draw[black!45,line width=0.35pt] (v5) -- (v6);
+  \draw[black!45,line width=0.35pt] (v5) -- (v7);
+  \draw[black!45,line width=0.35pt] (v5) -- (v8);
+  \draw[black!45,line width=0.35pt] (v5) -- (v9);
+  \draw[black!45,line width=0.35pt] (v6) -- (v7);
+  \draw[black!45,line width=0.35pt] (v6) -- (v8);
+  \draw[black!45,line width=0.35pt] (v6) -- (v9);
+  \draw[black!45,line width=0.35pt] (v7) -- (v8);
+  \draw[black!45,line width=0.35pt] (v7) -- (v9);
+  \draw[black!45,line width=0.35pt] (v8) -- (v9);
+\end{tikzpicture}
+\end{minipage}
+\par\smallskip Jumps in $E(S)$: $J=\{1,2,3,4,5\}$
+\par $b_{01} + b_{12} + b_{02} + b_{25} + b_{15} + b_{05} \le d_m(|S|)=d_{3}(4)=4$
+\par $2 y_{1} + y_{2} + y_{3} + y_{4} + y_{5} \le 4$
+\end{center}
+
+Each drawing below is a circulant graph $G_{L}$ for a non-empty $L\subseteq J$ with edges $E(L)=\{\{i,j\}\mid i,j\in V,\ \min((i-j)\bmod t,\,(j-i)\bmod t)\in L\}$.
+For each graph, we show $|E(L)\cap E(S)|$ and put $\textcolor{green!60!black}{\checkmark}$ iff $|E(L)\cap E(S)|=d_m(|S|)$; otherwise $\textcolor{red}{\boldsymbol{\times}}$.
+When a checked graph is minimal under single-jump deletion, we append $\textbf{MIN}$ right after the checkmark.
+Only graphs that pass the check are shown. 
+
+\noindent
+\begin{minipage}[t]{0.31\textwidth}
+\centering
+\begin{tikzpicture}[
+  thick,  vertex/.style={circle,draw,inner sep=1.2pt,font=\scriptsize},  svertex/.style={circle,draw=red,text=red,inner sep=1.2pt,font=\scriptsize},  baseline=(current bounding box.north)
+]
+  \node[svertex] (v0) at (0.000,1.350) {0};
+  \node[svertex] (v1) at (0.794,1.092) {1};
+  \node[svertex] (v2) at (1.284,0.417) {2};
+  \node[vertex] (v3) at (1.284,-0.417) {3};
+  \node[vertex] (v4) at (0.794,-1.092) {4};
+  \node[svertex] (v5) at (0.000,-1.350) {5};
+  \node[vertex] (v6) at (-0.794,-1.092) {6};
+  \node[vertex] (v7) at (-1.284,-0.417) {7};
+  \node[vertex] (v8) at (-1.284,0.417) {8};
+  \node[vertex] (v9) at (-0.794,1.092) {9};
+  \draw[red] (v0) -- (v1);
+  \draw[red] (v0) -- (v2);
+  \draw (v0) -- (v3);
+  \draw (v0) -- (v7);
+  \draw (v0) -- (v8);
+  \draw (v0) -- (v9);
+  \draw[red] (v1) -- (v2);
+  \draw (v1) -- (v3);
+  \draw (v1) -- (v4);
+  \draw (v1) -- (v8);
+  \draw (v1) -- (v9);
+  \draw (v2) -- (v3);
+  \draw (v2) -- (v4);
+  \draw[red] (v2) -- (v5);
+  \draw (v2) -- (v9);
+  \draw (v3) -- (v4);
+  \draw (v3) -- (v5);
+  \draw (v3) -- (v6);
+  \draw (v4) -- (v5);
+  \draw (v4) -- (v6);
+  \draw (v4) -- (v7);
+  \draw (v5) -- (v6);
+  \draw (v5) -- (v7);
+  \draw (v5) -- (v8);
+  \draw (v6) -- (v7);
+  \draw (v6) -- (v8);
+  \draw (v6) -- (v9);
+  \draw (v7) -- (v8);
+  \draw (v7) -- (v9);
+  \draw (v8) -- (v9);
+\end{tikzpicture}
+\par\smallskip Graph 16
+\par $L=\{\textcolor{red}{1},\textcolor{red}{2},\textcolor{red}{3}\}$
+\par $y=\left(\textcolor{red}{1},\textcolor{red}{1},\textcolor{red}{1},\textcolor{red}{0},\textcolor{red}{0}\right)$
+\par $|E(L)\cap E(S)|=4\;\;\textcolor{green!60!black}{\checkmark}\;\textbf{MIN}$
+\end{minipage}\hfill\begin{minipage}[t]{0.31\textwidth}
+\centering
+\begin{tikzpicture}[
+  thick,  vertex/.style={circle,draw,inner sep=1.2pt,font=\scriptsize},  svertex/.style={circle,draw=red,text=red,inner sep=1.2pt,font=\scriptsize},  baseline=(current bounding box.north)
+]
+  \node[svertex] (v0) at (0.000,1.350) {0};
+  \node[svertex] (v1) at (0.794,1.092) {1};
+  \node[svertex] (v2) at (1.284,0.417) {2};
+  \node[vertex] (v3) at (1.284,-0.417) {3};
+  \node[vertex] (v4) at (0.794,-1.092) {4};
+  \node[svertex] (v5) at (0.000,-1.350) {5};
+  \node[vertex] (v6) at (-0.794,-1.092) {6};
+  \node[vertex] (v7) at (-1.284,-0.417) {7};
+  \node[vertex] (v8) at (-1.284,0.417) {8};
+  \node[vertex] (v9) at (-0.794,1.092) {9};
+  \draw[red] (v0) -- (v1);
+  \draw[red] (v0) -- (v2);
+  \draw (v0) -- (v4);
+  \draw (v0) -- (v6);
+  \draw (v0) -- (v8);
+  \draw (v0) -- (v9);
+  \draw[red] (v1) -- (v2);
+  \draw (v1) -- (v3);
+  \draw[red] (v1) -- (v5);
+  \draw (v1) -- (v7);
+  \draw (v1) -- (v9);
+  \draw (v2) -- (v3);
+  \draw (v2) -- (v4);
+  \draw (v2) -- (v6);
+  \draw (v2) -- (v8);
+  \draw (v3) -- (v4);
+  \draw (v3) -- (v5);
+  \draw (v3) -- (v7);
+  \draw (v3) -- (v9);
+  \draw (v4) -- (v5);
+  \draw (v4) -- (v6);
+  \draw (v4) -- (v8);
+  \draw (v5) -- (v6);
+  \draw (v5) -- (v7);
+  \draw (v5) -- (v9);
+  \draw (v6) -- (v7);
+  \draw (v6) -- (v8);
+  \draw (v7) -- (v8);
+  \draw (v7) -- (v9);
+  \draw (v8) -- (v9);
+\end{tikzpicture}
+\par\smallskip Graph 17
+\par $L=\{\textcolor{red}{1},\textcolor{red}{2},\textcolor{red}{4}\}$
+\par $y=\left(\textcolor{red}{1},\textcolor{red}{1},\textcolor{red}{0},\textcolor{red}{1},\textcolor{red}{0}\right)$
+\par $|E(L)\cap E(S)|=4\;\;\textcolor{green!60!black}{\checkmark}\;\textbf{MIN}$
+\end{minipage}\hfill\begin{minipage}[t]{0.31\textwidth}
+\centering
+\begin{tikzpicture}[
+  thick,  vertex/.style={circle,draw,inner sep=1.2pt,font=\scriptsize},  svertex/.style={circle,draw=red,text=red,inner sep=1.2pt,font=\scriptsize},  baseline=(current bounding box.north)
+]
+  \node[svertex] (v0) at (0.000,1.350) {0};
+  \node[svertex] (v1) at (0.794,1.092) {1};
+  \node[svertex] (v2) at (1.284,0.417) {2};
+  \node[vertex] (v3) at (1.284,-0.417) {3};
+  \node[vertex] (v4) at (0.794,-1.092) {4};
+  \node[svertex] (v5) at (0.000,-1.350) {5};
+  \node[vertex] (v6) at (-0.794,-1.092) {6};
+  \node[vertex] (v7) at (-1.284,-0.417) {7};
+  \node[vertex] (v8) at (-1.284,0.417) {8};
+  \node[vertex] (v9) at (-0.794,1.092) {9};
+  \draw[red] (v0) -- (v1);
+  \draw[red] (v0) -- (v2);
+  \draw[red] (v0) -- (v5);
+  \draw (v0) -- (v8);
+  \draw (v0) -- (v9);
+  \draw[red] (v1) -- (v2);
+  \draw (v1) -- (v3);
+  \draw (v1) -- (v6);
+  \draw (v1) -- (v9);
+  \draw (v2) -- (v3);
+  \draw (v2) -- (v4);
+  \draw (v2) -- (v7);
+  \draw (v3) -- (v4);
+  \draw (v3) -- (v5);
+  \draw (v3) -- (v8);
+  \draw (v4) -- (v5);
+  \draw (v4) -- (v6);
+  \draw (v4) -- (v9);
+  \draw (v5) -- (v6);
+  \draw (v5) -- (v7);
+  \draw (v6) -- (v7);
+  \draw (v6) -- (v8);
+  \draw (v7) -- (v8);
+  \draw (v7) -- (v9);
+  \draw (v8) -- (v9);
+\end{tikzpicture}
+\par\smallskip Graph 18
+\par $L=\{\textcolor{red}{1},\textcolor{red}{2},\textcolor{red}{5}\}$
+\par $y=\left(\textcolor{red}{1},\textcolor{red}{1},\textcolor{red}{0},\textcolor{red}{0},\textcolor{red}{1}\right)$
+\par $|E(L)\cap E(S)|=4\;\;\textcolor{green!60!black}{\checkmark}\;\textbf{MIN}$
+\end{minipage}
+\par\medskip
+\noindent
+\begin{minipage}[t]{0.31\textwidth}
+\centering
+\begin{tikzpicture}[
+  thick,  vertex/.style={circle,draw,inner sep=1.2pt,font=\scriptsize},  svertex/.style={circle,draw=red,text=red,inner sep=1.2pt,font=\scriptsize},  baseline=(current bounding box.north)
+]
+  \node[svertex] (v0) at (0.000,1.350) {0};
+  \node[svertex] (v1) at (0.794,1.092) {1};
+  \node[svertex] (v2) at (1.284,0.417) {2};
+  \node[vertex] (v3) at (1.284,-0.417) {3};
+  \node[vertex] (v4) at (0.794,-1.092) {4};
+  \node[svertex] (v5) at (0.000,-1.350) {5};
+  \node[vertex] (v6) at (-0.794,-1.092) {6};
+  \node[vertex] (v7) at (-1.284,-0.417) {7};
+  \node[vertex] (v8) at (-1.284,0.417) {8};
+  \node[vertex] (v9) at (-0.794,1.092) {9};
+  \draw[red] (v0) -- (v1);
+  \draw (v0) -- (v3);
+  \draw (v0) -- (v4);
+  \draw (v0) -- (v6);
+  \draw (v0) -- (v7);
+  \draw (v0) -- (v9);
+  \draw[red] (v1) -- (v2);
+  \draw (v1) -- (v4);
+  \draw[red] (v1) -- (v5);
+  \draw (v1) -- (v7);
+  \draw (v1) -- (v8);
+  \draw (v2) -- (v3);
+  \draw[red] (v2) -- (v5);
+  \draw (v2) -- (v6);
+  \draw (v2) -- (v8);
+  \draw (v2) -- (v9);
+  \draw (v3) -- (v4);
+  \draw (v3) -- (v6);
+  \draw (v3) -- (v7);
+  \draw (v3) -- (v9);
+  \draw (v4) -- (v5);
+  \draw (v4) -- (v7);
+  \draw (v4) -- (v8);
+  \draw (v5) -- (v6);
+  \draw (v5) -- (v8);
+  \draw (v5) -- (v9);
+  \draw (v6) -- (v7);
+  \draw (v6) -- (v9);
+  \draw (v7) -- (v8);
+  \draw (v8) -- (v9);
+\end{tikzpicture}
+\par\smallskip Graph 19
+\par $L=\{\textcolor{red}{1},\textcolor{red}{3},\textcolor{red}{4}\}$
+\par $y=\left(\textcolor{red}{1},\textcolor{red}{0},\textcolor{red}{1},\textcolor{red}{1},\textcolor{red}{0}\right)$
+\par $|E(L)\cap E(S)|=4\;\;\textcolor{green!60!black}{\checkmark}\;\textbf{MIN}$
+\end{minipage}\hfill\begin{minipage}[t]{0.31\textwidth}
+\centering
+\begin{tikzpicture}[
+  thick,  vertex/.style={circle,draw,inner sep=1.2pt,font=\scriptsize},  svertex/.style={circle,draw=red,text=red,inner sep=1.2pt,font=\scriptsize},  baseline=(current bounding box.north)
+]
+  \node[svertex] (v0) at (0.000,1.350) {0};
+  \node[svertex] (v1) at (0.794,1.092) {1};
+  \node[svertex] (v2) at (1.284,0.417) {2};
+  \node[vertex] (v3) at (1.284,-0.417) {3};
+  \node[vertex] (v4) at (0.794,-1.092) {4};
+  \node[svertex] (v5) at (0.000,-1.350) {5};
+  \node[vertex] (v6) at (-0.794,-1.092) {6};
+  \node[vertex] (v7) at (-1.284,-0.417) {7};
+  \node[vertex] (v8) at (-1.284,0.417) {8};
+  \node[vertex] (v9) at (-0.794,1.092) {9};
+  \draw[red] (v0) -- (v1);
+  \draw (v0) -- (v3);
+  \draw[red] (v0) -- (v5);
+  \draw (v0) -- (v7);
+  \draw (v0) -- (v9);
+  \draw[red] (v1) -- (v2);
+  \draw (v1) -- (v4);
+  \draw (v1) -- (v6);
+  \draw (v1) -- (v8);
+  \draw (v2) -- (v3);
+  \draw[red] (v2) -- (v5);
+  \draw (v2) -- (v7);
+  \draw (v2) -- (v9);
+  \draw (v3) -- (v4);
+  \draw (v3) -- (v6);
+  \draw (v3) -- (v8);
+  \draw (v4) -- (v5);
+  \draw (v4) -- (v7);
+  \draw (v4) -- (v9);
+  \draw (v5) -- (v6);
+  \draw (v5) -- (v8);
+  \draw (v6) -- (v7);
+  \draw (v6) -- (v9);
+  \draw (v7) -- (v8);
+  \draw (v8) -- (v9);
+\end{tikzpicture}
+\par\smallskip Graph 20
+\par $L=\{\textcolor{red}{1},\textcolor{red}{3},\textcolor{red}{5}\}$
+\par $y=\left(\textcolor{red}{1},\textcolor{red}{0},\textcolor{red}{1},\textcolor{red}{0},\textcolor{red}{1}\right)$
+\par $|E(L)\cap E(S)|=4\;\;\textcolor{green!60!black}{\checkmark}\;\textbf{MIN}$
+\end{minipage}\hfill\begin{minipage}[t]{0.31\textwidth}
+\centering
+\begin{tikzpicture}[
+  thick,  vertex/.style={circle,draw,inner sep=1.2pt,font=\scriptsize},  svertex/.style={circle,draw=red,text=red,inner sep=1.2pt,font=\scriptsize},  baseline=(current bounding box.north)
+]
+  \node[svertex] (v0) at (0.000,1.350) {0};
+  \node[svertex] (v1) at (0.794,1.092) {1};
+  \node[svertex] (v2) at (1.284,0.417) {2};
+  \node[vertex] (v3) at (1.284,-0.417) {3};
+  \node[vertex] (v4) at (0.794,-1.092) {4};
+  \node[svertex] (v5) at (0.000,-1.350) {5};
+  \node[vertex] (v6) at (-0.794,-1.092) {6};
+  \node[vertex] (v7) at (-1.284,-0.417) {7};
+  \node[vertex] (v8) at (-1.284,0.417) {8};
+  \node[vertex] (v9) at (-0.794,1.092) {9};
+  \draw[red] (v0) -- (v1);
+  \draw (v0) -- (v4);
+  \draw[red] (v0) -- (v5);
+  \draw (v0) -- (v6);
+  \draw (v0) -- (v9);
+  \draw[red] (v1) -- (v2);
+  \draw[red] (v1) -- (v5);
+  \draw (v1) -- (v6);
+  \draw (v1) -- (v7);
+  \draw (v2) -- (v3);
+  \draw (v2) -- (v6);
+  \draw (v2) -- (v7);
+  \draw (v2) -- (v8);
+  \draw (v3) -- (v4);
+  \draw (v3) -- (v7);
+  \draw (v3) -- (v8);
+  \draw (v3) -- (v9);
+  \draw (v4) -- (v5);
+  \draw (v4) -- (v8);
+  \draw (v4) -- (v9);
+  \draw (v5) -- (v6);
+  \draw (v5) -- (v9);
+  \draw (v6) -- (v7);
+  \draw (v7) -- (v8);
+  \draw (v8) -- (v9);
+\end{tikzpicture}
+\par\smallskip Graph 21
+\par $L=\{\textcolor{red}{1},\textcolor{red}{4},\textcolor{red}{5}\}$
+\par $y=\left(\textcolor{red}{1},\textcolor{red}{0},\textcolor{red}{0},\textcolor{red}{1},\textcolor{red}{1}\right)$
+\par $|E(L)\cap E(S)|=4\;\;\textcolor{green!60!black}{\checkmark}\;\textbf{MIN}$
+\end{minipage}
+\par\medskip
+\noindent
+\begin{minipage}[t]{0.31\textwidth}
+\centering
+\begin{tikzpicture}[
+  thick,  vertex/.style={circle,draw,inner sep=1.2pt,font=\scriptsize},  svertex/.style={circle,draw=red,text=red,inner sep=1.2pt,font=\scriptsize},  baseline=(current bounding box.north)
+]
+  \node[svertex] (v0) at (0.000,1.350) {0};
+  \node[svertex] (v1) at (0.794,1.092) {1};
+  \node[svertex] (v2) at (1.284,0.417) {2};
+  \node[vertex] (v3) at (1.284,-0.417) {3};
+  \node[vertex] (v4) at (0.794,-1.092) {4};
+  \node[svertex] (v5) at (0.000,-1.350) {5};
+  \node[vertex] (v6) at (-0.794,-1.092) {6};
+  \node[vertex] (v7) at (-1.284,-0.417) {7};
+  \node[vertex] (v8) at (-1.284,0.417) {8};
+  \node[vertex] (v9) at (-0.794,1.092) {9};
+  \draw[red] (v0) -- (v2);
+  \draw (v0) -- (v3);
+  \draw (v0) -- (v4);
+  \draw[red] (v0) -- (v5);
+  \draw (v0) -- (v6);
+  \draw (v0) -- (v7);
+  \draw (v0) -- (v8);
+  \draw (v1) -- (v3);
+  \draw (v1) -- (v4);
+  \draw[red] (v1) -- (v5);
+  \draw (v1) -- (v6);
+  \draw (v1) -- (v7);
+  \draw (v1) -- (v8);
+  \draw (v1) -- (v9);
+  \draw (v2) -- (v4);
+  \draw[red] (v2) -- (v5);
+  \draw (v2) -- (v6);
+  \draw (v2) -- (v7);
+  \draw (v2) -- (v8);
+  \draw (v2) -- (v9);
+  \draw (v3) -- (v5);
+  \draw (v3) -- (v6);
+  \draw (v3) -- (v7);
+  \draw (v3) -- (v8);
+  \draw (v3) -- (v9);
+  \draw (v4) -- (v6);
+  \draw (v4) -- (v7);
+  \draw (v4) -- (v8);
+  \draw (v4) -- (v9);
+  \draw (v5) -- (v7);
+  \draw (v5) -- (v8);
+  \draw (v5) -- (v9);
+  \draw (v6) -- (v8);
+  \draw (v6) -- (v9);
+  \draw (v7) -- (v9);
+\end{tikzpicture}
+\par\smallskip Graph 30
+\par $L=\{\textcolor{red}{2},\textcolor{red}{3},\textcolor{red}{4},\textcolor{red}{5}\}$
+\par $y=\left(\textcolor{red}{0},\textcolor{red}{1},\textcolor{red}{1},\textcolor{red}{1},\textcolor{red}{1}\right)$
+\par $|E(L)\cap E(S)|=4\;\;\textcolor{green!60!black}{\checkmark}\;\textbf{MIN}$
+\end{minipage}
+\par\medskip
+
+\noindent\textbf{Matrix Data}
+\par $N=7$
+\par $I=\{16,17,18,19,20,21,30\}$\quad$Y=\begin{bmatrix}1 & 1 & 1 & 1 & 1 & 1 & 0 \\ 1 & 1 & 1 & 0 & 0 & 0 & 1 \\ 1 & 0 & 0 & 1 & 1 & 0 & 1 \\ 0 & 1 & 0 & 1 & 0 & 1 & 1 \\ 0 & 0 & 1 & 0 & 1 & 1 & 1\end{bmatrix}$
+\par $Y^{+}=\begin{bmatrix}1 & 1 & 1 & 1 & 1 & 1 & 0 \\ 1 & 1 & 1 & 0 & 0 & 0 & 1 \\ 1 & 0 & 0 & 1 & 1 & 0 & 1 \\ 0 & 1 & 0 & 1 & 0 & 1 & 1 \\ 0 & 0 & 1 & 0 & 1 & 1 & 1 \\ 1 & 1 & 1 & 1 & 1 & 1 & 1\end{bmatrix}$\quad$\operatorname{rank}(Y^{+})=5$
+\par $Y^{+}\lambda=\mathbf{0}$ with $\lambda=\begin{bmatrix}0 \\ 1 \\ -1 \\ -1 \\ 1 \\ 0 \\ 0\end{bmatrix}$
+\end{document}

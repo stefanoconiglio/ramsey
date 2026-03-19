@@ -1,0 +1,38 @@
+EGY G R Á F E L M É L E T I S Z É L S Ő É R T É K F E L A D A T R O L .
+
+447
+
+definíció szerint a (Zc—1) szögpontú (Pv Pv ..., Pk—j) teljes rész­
+gráf szögpontjai lévén, össze vannak kötve egymással. Ha végül
+a vizsgálandó szögpontok egyike az első részbe tartozott, másika
+a másodikba, akkor, mivel e két szögpont a feltevés szerint
+különböző bővített osztályokba esik, a bővített osztályok definí­
+ciója szerint az a szögpont, mely az első részbe tartozott,
+nem asszociáltja annak, amelyik a másodikba tartozott; lehát
+az asszociált definíciója szerint e két szögpont össze van kötve
+egymással.
+így tehát csak azt kell még bebizonyítani, hogy a (2 ) táblá­
+zat első oszlopának %-értékeire a tétel igaz. Legyen először
+r =t=0 és így T — 1. Ekkor c) alapján
+Mk(k - 1 + r) _<g (/C2 1 ) + Mk(r) + (k - 2 ) r ^
+(4)
+
+Nézzük meg, mikor válbatik a (4) egyenlőtlenség egyenlőséggé.
+Nyilván akkor és csak akkor, ha az r számú, második részbe
+tartozó szögpont mindegyike épp a (k — 2 ) első részbe tartozó­
+val van összekötve és a második részbe tartozó szögpontok rszögpontú teljes részgráfot alkotnak. Egy ilyen gráfban tehát egy
+második részbe tartozó szögpont asszociáltját ugyanúgy értel­
+mezhetjük, mint az előbb. Pontosan úgy, mint előbb, bebizo­
+nyíthatjuk, hogy csak akkor lehetséges, hogy ne legyen a gráf­
+ban egy k szögpontú teljes részgráf, ha bármely két oly külön­
+böző szögpontnak, melyek a második részhez tartoztak, az
+asszociáltjai különbözők. (Természetesen ekkor nem mindegyik,
+első részbe tartozó szögpont lesz asszociált!) A jelölést meg­
+választhatjuk úgy, hogy Pk asszociáltja legyen Pv Pk+i~é
+Pv . . . , P k- i +r-é pedig Pr; a P r+i, P r+2, . .., P *_1 első részbe
+tartozó szögpontok tehát nem asszociáltak. De ekkor egy osz­
+tályba véve P/rt és Pt et, Pk+ret, és P 2-t,..., P fc_ i+r-et és P,-et,
+továbbá külön osztályoknak P,.+i-et, Pr+2-t,-• Pk—i-et, (Zc—1)
+számú osztályt nyertünk, melyek közül az első r osztály mind­
+
+

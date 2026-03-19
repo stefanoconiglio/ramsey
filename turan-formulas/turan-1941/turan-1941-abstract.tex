@@ -1,0 +1,35 @@
+\documentclass[12pt]{article}
+\usepackage{amsmath,amssymb}
+
+\begin{document}
+
+\section*{An Extremal Problem from Graph Theory}
+
+The problem under consideration is the following. Let $n$ and $k$ be given natural numbers ($2 \le k \le n$). How many edges can a graph with $n$ vertices contain, in which each pair of vertices is connected by at most one edge, if it contains no complete subgraph with $k$ vertices? (A graph is said to be complete if every two of its vertices are connected by exactly one edge.)
+
+We first describe a graph $D(n,k)$ corresponding to the given pair $(n,k)$ of natural numbers, which---in the elegant formulation of Prof.\ D.~Kőnig---can be defined as follows: we number $n$ vertices in order by $1,2,\dots,n$ and connect two vertices if and only if the numbers assigned to them are incongruent modulo $(k-1)$. It will be proved that the graph $D(n,k)$ thus obtained (for $n=7$, $k=4$, see the figure) provides the solution, and indeed the unique solution, of the above extremal problem.
+
+The number of edges of this graph is:
+\[
+\frac{k-2}{2(k-1)}\,(n^2 - r^2) + \binom{r}{2},
+\]
+where $r$ is defined by
+\[
+n \equiv r \pmod{k-1}, \qquad 0 \le r < k-1.
+\]
+
+[For $k=3$, this theorem was already found in 1907 by W.~Mantel (see \emph{Fortschritte d.\ Math.}, B.\ 38, p.\ 270).]
+
+The problem solved here can also be formulated---in purely combinatorial terms---as follows. One is to determine a smallest possible set $M$ of combinations of the second class (without repetition) from $n$ elements such that every combination of the $k$th class (without repetition) of these $n$ elements contains at least one element of $M$.
+
+For infinite graphs the following theorem will be proved. A graph with countably infinite vertices always contains an infinite complete subgraph if the following condition is satisfied for a natural number $k$: whenever $k$ vertices of the graph are chosen arbitrarily, there are always at least two among them that are connected by an edge of the graph.
+
+For $k=3$, this theorem is due to Mr.\ G.~Szekeres, who was led to such graphs through group-theoretic investigations connected with the Burnside problem.
+
+\bigskip
+\begin{flushright}
+Paul Turán
+\end{flushright}
+
+\end{document}
+

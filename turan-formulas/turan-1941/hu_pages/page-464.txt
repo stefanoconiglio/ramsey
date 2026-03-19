@@ -1,0 +1,42 @@
+448
+
+T U B Á N PÁL.
+
+egyike 2 = T -p l szögpontot, a többi ( k — 1 — r) osztály mind­
+egyike 1 T számú szögpontot tartalmaz. Hogy a fenti feltéte­
+leket kielégítő gráfokat a D (k —1-j- r, k) gráffal identifikálhassuk,
+először azt kell belátni, hogy közös osztályba tartozó szögpon­
+tok soha sincsenek összekötve egymással, másodszor, hogy
+különböző osztályba tartozók viszont mindig. Az első állítást
+nyilván csak az első r osztályra kell igazolni; ezekre pedig az
+osztályoknak és az asszociált definíciója alapján az állítás evidens.
+A második állítás igazolására elég megjegyezni, hogy az osztá­
+lyok szerkesztése szerint a
+—1 ) számú, első részhez tartozott
+szögpont bármely párja egymással össze van kötve, ugyanez áll
+azon r számú szögpontra, melyek a második részt alkotják;
+az első és második részbe tartozó szögpontok közül a szerkesz­
+tés szerint csak azok nincsenek összekötve, melyeknél az első
+részbe tartozó szögpont a másodikba tartozónak asszociáltja.
+De ezek épp azon szögpontpárak, melyek egy-egy osztályt alkot­
+nak. Tehát r =j=0 esetben a bizonyítás teljesen be van fejezve;
+ha r = 0 és így 7’== 2 , a bizonyítás teljesen ugyanígy halad,
+csak az összes alosztályok két-két szögpontot tartalmaznak.
+A bizonyítás ezzel be van fejezve.
+Mielőtt rátérnék — mint az I. §.-ban említettem — a III.
+tétel bizonyítására, az n = 2m, k = 3 esetre egy másik, rövidebb
+bizonyítást közlök. Ezen bizonyítás igen egyszerű lesz és módo­
+sításával — az extrém gráf unicitásától eltekintve — az I. tétel
+bevezethető minden n és Á-ra, de számítást igényel és ez az álta­
+lános esetben meglehetősen áttekinthetetlen. Ez a bizonyítás is
+teljes indukción alapszik. Ugyanis m = 2-re könnyen belátható,
+hogy 5 = 2 ‘2 1 él létezése mellett minden 4 szögpontú gráfban
+biztosan van teljes háromszög; tegyük fel bebizonyítottnak, hogy
+egy n — 2 m szögpontú gráfban legfeljebb m2 számú él húzható
+meg úgy, hogy ne legyen benne teljes háromszög és vizsgáljuk
+meg az n — 2m -f 2 szögpontú gráfokat. Tekintsünk egy olyan
+gráfot, melynek (2m + 2) szögpontja, A73(2m -j- 2) éle van és
+nincs benne teljes háromszög. Vegyünk ki e gráfból egy tetsző­
+leges élt; a jelölést úgy választhatjuk meg, hogy ennek vég­
+
+

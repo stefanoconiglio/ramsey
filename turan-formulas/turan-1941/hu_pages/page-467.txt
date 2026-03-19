@@ -1,0 +1,44 @@
+E G Y G R Á F E L M É L E T I SZÉ LSŐ É R T ÉK FK L ADATRÓL.
+
+451
+
+gráfot, tehát a fortiori A is. Ha viszont nem szakad meg, akkor
+nyilván Pi) Pn , PH, , .. szögpontú teljes gráf maga egy végtelen
+sok szögpontú teljes részgráfja A-nak. Ezzel a II. tétel be van
+bizonyítva.
+A
+Megjegyzés a korrektúránál. Amint K önig D énes professzor
+úr szíves volt megjegyezni, a fenti D (n ,k) gráf a következő
+elegáns módon értelmezhető. Számozzunk meg n pontot rendre
+az 1, 2, 3........n számokkal és azon szögpontokat kössük össze,
+amelyekhez rendelt számok mod (k— 1) inkongruensek. A kapott
+gráf épp D (n, k).
+Továbbá Krausz J ózsef tanár úr szíves közléséből arról érte­
+sülök, hogy dk(n)-nek a 438. lapon adott értékét k — 3 esetre
+már 1907-ben megtalálta W. M antel (Wiskundige Opgaven,
+10. k., 60 —61. o.). Dolgozatát csak a Fortschritte d. Math. (38.
+k., 270. o.) referátumából ismerem.
+Túrán Pál.
+
+EINE EXTREMALAUFGABE AUS DER GRAPHEN­
+THEORIE.
+Das behandelte Problem lautet folgendermassen. Es seien n und k
+gegebene natürliche Zahlen (2 fg k n ) ; wie viele Kanten kann ein
+Graph mit n Knotenpunkten, in dem jedes Knotenpunktepaar durch
+höchstens eine Kante verbunden ist, höchstens enthalten, wenn er
+keinen vollständigen Teilgraphen mit k Knotenpunkten enthält ? (Ein
+Graph heisst bekanntlich vollständig, wenn je zwei seiner Knoten­
+punkte durch eine und nur eine Kante verbunden sind). Es wird zu­
+nächst ein dem gegebenen Paar (n, k) natürlicher Zahlen entsprechen­
+der Graph D(n, k) angegeben, der — in der eleganten Formulierung
+von Prof. D. K ö n ig — folgendermassen definiert werden kann: wir
+numerieren n Punkte der Eeihe nach mit 1
+n und verbinden
+diejenige und nur diejenige Punkte mitainander, denen mod (k—1)
+inkongruente Zahlen zugeordnet wurden. Es wird bewiesen, dass der
+so entstehende Graph D(n, k) (für n — 1, k — 4 s. die Figur ) die
+Matematikai és Fizikai Lapok XLVIIJ.
+
+31
+
+

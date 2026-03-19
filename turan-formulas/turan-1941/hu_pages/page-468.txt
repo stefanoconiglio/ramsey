@@ -1,0 +1,33 @@
+4 5 ■>
+
+T Ú R Á N PÁL.
+
+Lösung, und zwar die einzige Lösung der obigen Extremalaufgabe
+liefert. Die Kantenanzahl dieses Graphen beträgt:
+
+wo r durch
+
+n = r(m odk— 1 ),
+
+0 ;g r< fe — 1
+
+definiert ist. [Für k —3 wurde dieser Satz schon 1907. von W. Mantel
+gefunden (s. Fortschritte d. Math., B. 38, S. 270)]. Die hiedurch
+gelöste Aufgabe kann man — in rein kombinatorischer Fassung —
+auch folgendermassen formulieren. Es soll eine möglichst kleine
+Menge M von Kombinationen zweiter Klasse (ohne Wiederholung)
+aus n Elementen angegeben werden, so dass jede Kombination /e-ter
+Klasse (ohne Wiederholung) dieser n Elemente wenigstens ein Element
+aus M enthält.
+Über unendliche Graphen wird folgender Satz bewiesen. Ein Graph
+mit abzahlbar unendlichvielen Knotenpunkten besitzt stets einen un­
+endlichen vollständigen Teilgraphen, wenn für eine natürliche Zahl k
+folgende Bedingung erfüllt ist: werden k Knotenpunkte des Graphen
+in beliebiger Weise angegeben, so gibt es unter.ihnen stets wenigstens
+zwei solche Knotenpunkte, die durch eine Kante des Graphen verbun­
+den sind. Für k — 3 stammt dieser Satz von Herrn G. Szekeres, der
+durch seine, das BuRNsiDE-sche Problem behandelnde gruppentheore­
+tische Untersuchungen zu solchen Graphen geführt wurde.
+Paul Túrán.
+
+

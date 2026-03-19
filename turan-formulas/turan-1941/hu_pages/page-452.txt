@@ -1,0 +1,28 @@
+EGY GRÁFELMÉLETI SZÉLSŐÉRTÉKFELADATRÓL.1
+I. 8.
+Legyenek adva bizonyos pontok, melyekből valamely szabály
+szerint bizonyos pontpárokat összekötünk egymással, a többit
+nem. Az így keletkezett alakzatot nevezzük gráfnak. Az eredeti­
+leg adott pontok a gráf szögponljai, az összekötő vonalak a
+gráf élei. A gráf általános fogalma megengedné, hogy ugyanazon
+két szögpont esetleg több éllel legyen összekötve; e dolgozatban
+azonban a gráf szót mindenkor abban a szűkebb értelemben
+használjuk, melynél bármely két szögpont legfeljebb egy éllel van
+összekötve. Gráfot nyerünk pl., ha az n pontnak, P v P „ . . . , P n nek, rendre megfeleltetjük egy »-tagú társaság tagjait és a P t P j
+élt akkor és csak akkor húzzuk meg, ha a társaság t-ik és j'-ik
+tagjai ismerik egymást. Egy B gráfot az A gráf részgráfjának
+nevezünk, ha B minden éle és szögpontja szerepel A-ban. Az
+A
+gráfot akkor nevezzük telj es gráfnak, ha A bármely két szög­
+pontját összekötő él szerepel A-ban. Az n szögpontból álló
+teljes gráfot némelykor teljes »-szögnek is fogom nevezni2 és
+ha szögpontjai P v P v..., P n , akkor ( P v P v . . P n ) - e 1 fogom
+jelölni. Egy A gráf kiegészítő gráfja alatt azon, a későbbiekben
+A-val jelzendő, gráfot értjük, melynek szögpontjai az eredeti
+gráfnak is szögpontjai és élei az A gráfot teljes gráffá egészítik
+1 E tá rg y ró l szerző előadást tartott az Eötvös Loránd M atem atikai és
+Fizikai T ársulat 1941. márc. 27.-i ülésén.
+2 H a w = 3 , akkor is «teljes» háromszögről fogok beszélni az egyöntetű­
+ség végett.
+
+

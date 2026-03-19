@@ -1,0 +1,66 @@
+EGY GRÁ FELM ÉLETI SZÉLSŐÉRTÉKFELADATRÓL.
+
+443
+
+ez (Pv
+Pfc_i) legyen, a többi szögpont: Pk, Pk+U... Pn.
+Ezáltal a szögpontokat két részre osztottuk. Figyeljük meg,
+hogy bármelyik oly szögpontból, mely a második részbe tartozik,
+az első részhez tartozók felé legfeljebb (k— 2 ) él indul ki; mert,
+ha például /\--ból (k — 1) ilyen él indulna ki, akkor a definíció
+szerint a (Plt Pv . .., Pk—u P k) gráf (tehát egy k szögpontú teljes
+gráf) /1-nak része volna, ami ellentmond A definíciójának. Mivel
+a második részhez tartozó szögpontok száma (n — k -f 1), az
+olyan élek száma, melyek különböző részekhez tartozó szögpon­
+tokat kötnek össze, legfeljebb
+( f c - 2 )(» -fc + l).
+Azon élek száma, melyek mindkét végpontja az első részhez
+tartozik, nyilván pontosan
+
+Végül azon élek száma, melyek mindkét végpontja a második rész­
+hez tartozik, leqfeljebb
+M/,(n —&H-1);
+ugyanis a második részbe (n—Zc-f-l) szögpont esik és az ezeket
+egymás közt összekötő élek által alkotott gráf se tartalmazhat
+k szögpontú teljes részgráfot. Mindezekből a bebizonyítandó
+egyenlőtlenség következik.
+Ezek után rátérhetünk az I. tétel bizonyítására. A bizonyí­
+tást fix k 2 / 3 mellett «n-ről (« -j- k —l)-re való teljes indukció­
+val» végezzük, ami alatt pontosan a következőket értjük. Fix k
+mellett n változzék; nyilván csak oly w-ekre kell a tételt be­
+bizonyítani, melyek (k - l)-nél nagyobbak. Az n lehetséges érté­
+keit a következőkép csoportositjuk
+(k)
+(* + l)
+
+(2* — 1)
+m
+
+(Sk —2)
+(Bk — 1 )
+
+.
+.
+
+.
+.
+
+.
+.
+
+(2 Ä -2 )
+
+(3/c — 3)
+
+(4 ft-4 )
+
+.
+
+.
+
+.
+
+ahol tehát közös sorban állanak azon n-értékek, melyek mod (k—1)
+kongruensek. A tétel be lesz bizonyítva, ha előbb bebizonyít­
+
+
