@@ -1,0 +1,41 @@
+EGY G R Á F E L M É L E T I S Z É L S Ő É R T É K F E L A D A T R O L .
+
+441
+
+minimális száma, melyek együttesen minden teljes k-szöget «lefog­
+nak». A III. tétel erre pontos választ ad, amennyiben kimondja,
+hogyezen minimális élszámú lefogó élrendszer egyedül az előbb
+definiált D(n, k) gráf kiegészítője, tehát egy olyan gráf, mely
+szétesik (Je—1) számú teljes gráf összegére.8 A minimális lefogó
+élszám tehát f j - dlc(n ) ; vagyis: egy n szögpontú teljes gráf­
+ból bárhogy távolítunk is el
+
+\ — cZ&(n) —1 számú élt, a meg­
+
+maradó gráf biztosan tartalmaz k szögpontú teljes részgráfot.
+Azon természetesen adódó általánosabb kombinatorikus kérdésre,
+hogy n elem Z-edosztályú kombinációi közül legalább hányat
+kell kivenni, hogy minden /c-adosztályú kombinációban legyen
+legalább egy kiválasztott Z-edosztályú (l < k), egyelőre nem tudok
+válaszolni ; az l = 2 esetet azonban a III. tétel tökéletesen el­
+intézi. A III. tétel az előbbi bekezdésben definiált gráfokra is
+ad tájékoztatást éspedig olyan értelemben, hogy az ilyen tulaj­
+donságú gráfokra, ha szögpontjaik száma n, nem lehet «túlkevés» éle; pontosabban, éleinek száma legalább
+A véges gráfokra vonatkozó I. és III. tételeket a II. §.-ban,
+a végtelen gráfokra vonatkozó II. tételt a III. §.-ban fogom
+bebizonyítani.
+II. 8.
+Az I. tételt a következő formában bizonyítjuk b e :
+I. tétel. Azon n szögpontú gráfok közül, melyeknek nincs
+k szögpontú teljes részgráfjuk, a legtöbb éle az I. §.-őtro
+definiált D(n, k) gráfnak és csak ennek van.
+Mint az I. §.-ban említettük, a keresett maximális élszámot
+M,,.(n)-nel jelöljük, a D (n, le) gráf éleinek számát pedig dk(n)-nel;
+tehát azt kell bizonyítani, hogy Mk(n) — dk{n) és hogy az I.
+tételben kívánt tulajdonságú gráfok között csak a D{n, k) gráf­
+nak van d/fn) számú éle.
+8
+Vagyis ( k —1) számú olyan teljes gráfra, melyeknek páronkint sem
+közös élük, sem közös szögpontjuk nincs.
+
+

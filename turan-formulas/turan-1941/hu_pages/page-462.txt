@@ -1,0 +1,41 @@
+446
+
+TÚRÁN PÁL.
+
+osztályából. Előbbi észrevételünk alapján P /c+2, • . P-ik—i szög­
+pontok asszociáltj ai különbözők (hiszen P/l+2,. . P%k—i különböző
+osztályokba esnek) ezen asszociáltak különböznek Pt és P 2-től
+(hisz Pk és P/c+i, melyeknek P a, illetve P 2 az asszociáltjai, az
+első osztályba tartoznak, tehát másba, mint P/t+2, vagy P fc+3,...
+vagy Píi.—t). Vagyis, ha P /c és I\+ i asszociáltj ai különbözők
+volnának, akkor a különböző asszociáltak száma legalább k volna;
+de ez lehetetlen, mert az asszociáltak az első részhez tartozó
+szögpontok és az első részhez annak definíciója szerint épp (k — 1)
+szögpont tartozik. Azt nyertük tehát, hogy a {(/c —1) (T’-j-1) -f- r}szögpontú, a) és ß) tulajdonságokkal rendelkező gráf, ha nincs
+k szögpontú teljes részgráfja, olyan, hogy a második részhez
+tartozó szögpontok minden osztályához egy közös asszociált
+tartozik és e közös asszociált mind a (k —1 ) osztályra más és
+más. Mármost m in d a (k—1) osztályhoz csatoljuk hozzá a bele­
+tartozó szögpontok közös asszociáltját; így az első részbe tartozó
+szögpontok pontosan definiált módon «felszívódtak» a (k— 1)
+számú eredeti osztályba. Ekkor az asszociált definíciója alapján
+a bővített osztályok mindegyikének szintén meglesz az a tulaj­
+donsága, hogy közös osztályba tartozó szögpontpár nincs éllel
+összekötve. Nyilvánvalóan a bővített osztályok közül az első
+r számú osztály mindegyikébe épp
+szögpont, a többi
+(k — r — 1) osztály mindegyikébe ( P + l) szögpont esik. Ha még
+belátjuk, hogy bármelyik két különböző bővített osztályból
+is véve ki egy-egy szögpontot, ezek egymással össze vannak kötve,
+akkor gráfunk épp a D{k — 1. T + l + r, k) gráf, mely b) szerint
+valóban nem tartalmaz fc-szögpontú teljes részgráfot. Tehát ezzel
+I. tétel be lesz bizonyítva, feltéve még természetesen, hogy a
+tétel a (2 ) táblázat első oszlopának n-értékeire igaz.
+Hogy azonban bármely két oly szögpont, mely különböző
+bővített osztályokba tartozik, mindig össze van kötve egymással,
+az előbbiek alapján könnyen belátható. H a a vizsgálandó két
+szögpont mindegyike a második részhez tartozott, akkor ez a
+D (k —Í . T-f r, k) gráf definíciójából következik. Ha a vizsgálandó
+szögpontok mindkettője az első osztályba tartozott, akkor ezek,
+
+

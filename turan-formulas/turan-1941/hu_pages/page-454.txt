@@ -1,0 +1,37 @@
+438
+
+T ÚRÁN PÁL.
+
+el «-et (k— l)-el; az osztás hányadosa legyen t, maradéka r,
+vagyis
+n = ( k ~ l) t + r,
+k —2 .
+Ekkor a Pv P%,. . . , P n szögpontokat osszuk (k — 1) osztályba
+úgy, hogy az első r osztály mindegyikébe (t + 1) szögpontot,. a
+többi (k—r —í) osztály mindegyikébe t szögpontot teszünk; ez­
+által nyilván valamennyi szögpont beleesik egy és csak egy
+osztályba. Mármost bármely két oly szögpontot, mely nem
+esik közös osztályba, kössünk össze egymással, viszont oly
+P„ Pj szögpontpárokat, melyek közös osztályba esnek, nem. Ezzel
+a D (n, k) gráf szerkezetileg egyértelműen meg van határozva.3
+A D{7, 4) gráf az ábrán
+látható; itt r = 1 , t = 2 ;
+P,, P2, P 3 szögpontok tar­
+toznak az első osztályba,
+Pi és P 5 a másodikba,
+P 6 és P , a harmadikba.
+Kimutatjuk, hogy ezen
+D(n, k) gráf és csak ez
+képezi szélsőértékfeladatunk megoldását. Más szó­
+val, ha egy n szögpontú
+gráfban legalább 1 + dán) számú él van, akkor biztosan van
+benne egy k szögpontú teljes részgráf; ha azonban csak dtfn)
+számú ól van benne, akkor van olyan, egyértelműen meghatáro­
+zott gráf (éppen az előbb definiált D(n, k) gráf), melyben nincs
+Á-szögpontú teljes részgráf. Ez lesz az I. tétel. Könnyen igazol­
+ható, hogy (1) jelölésével
+
+3 Ezen gráfra n = 0 (mod 3), /c=4 esetben W inklek J ózsef mérnök ú r
+volt szives figyelmemet felhívni.
+
+

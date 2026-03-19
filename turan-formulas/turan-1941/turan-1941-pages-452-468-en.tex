@@ -1,0 +1,170 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb}
+\usepackage{geometry}
+\geometry{margin=1in}
+\title{On an Extremal Problem in Graph Theory\\English Translation of PDF Pages 452--468}
+\author{Pal Turan (translated from Hungarian and German)}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section*{Section I}
+Let certain points be given. According to a rule, we connect some pairs of points and do not connect the others. The resulting figure is called a \emph{graph}. The originally given points are the vertices, and the connecting lines are the edges. In general one might allow several edges between the same two vertices, but in this paper ``graph'' always means the narrower notion in which at most one edge connects any pair of vertices.
+
+For example, from a society of $n$ people we obtain a graph by assigning people to points $P_1,P_2,\dots,P_n$, and drawing edge $P_iP_j$ exactly when persons $i$ and $j$ know each other. Graph $B$ is called a \emph{subgraph} of graph $A$ if every edge and every vertex of $B$ appears in $A$. Graph $A$ is \emph{complete} if every pair of vertices of $A$ is connected by an edge. A complete graph on $n$ vertices is also called a complete $n$-gon. If its vertices are $P_1,\dots,P_n$, I denote it by $(P_1,P_2,\dots,P_n)$. The complement graph $\bar A$ has the same vertices as $A$, and those edges that complete $A$ to the complete graph.
+
+The problem can be interpreted as follows. $n$ players begin a round-robin tournament but stop after $N$ games. How large must $N$ be to guarantee that among the players there are at least $k$ who have all played each other? Here $3\le k\le n$. Assign players to vertices $P_1,\dots,P_n$, and connect $P_i,P_j$ iff the game $i$ vs. $j$ has been played. Then we obtain an $n$-vertex graph with $N$ edges. The question becomes: how large must $N$ be so that any $n$-vertex graph with $N$ edges must contain a complete $k$-vertex subgraph?
+
+Equivalently: what is the maximum number of edges in an $n$-vertex graph that has no complete $k$-vertex subgraph? Denote this maximum by $M_k(n)$. Then every $n$-vertex graph with at least $M_k(n)+1$ edges must contain a complete $k$-vertex subgraph. Our task is to determine $M_k(n)$.
+
+A special graph will play a central role; denote it by $D(n,k)$, and let its number of edges be $d_k(n)$. Write
+\[
+n=(k-1)t+r,\qquad 0\le r\le k-2.
+\]
+Split the vertices $P_1,\dots,P_n$ into $(k-1)$ classes so that the first $r$ classes have $t+1$ vertices each, and the remaining $(k-1-r)$ classes have $t$ vertices each. Connect two vertices iff they belong to \emph{different} classes. This defines $D(n,k)$ uniquely.
+
+For $D(7,4)$ we have $r=1$, $t=2$. We show that this graph, and only this graph, solves the extremal problem. In other words: if an $n$-vertex graph has at least $d_k(n)+1$ edges, then it contains a complete $k$-vertex subgraph; but with only $d_k(n)$ edges, there is a uniquely determined graph (namely $D(n,k)$) without such a subgraph. This is Theorem I.
+
+The edge count is
+\[
+d_k(n)=\frac{k-2}{2(k-1)}\,(n^2-r^2)+\binom{r}{2}.
+\]
+For $k=3$,
+\[
+d_3(n)=\frac14\,(n^2-r^2)>\frac12\binom{n}{2},
+\]
+so in the tournament interpretation one must play more than half of all games to guarantee a completed 3-player round robin.
+
+Theorem I gives a criterion for finite graphs to contain a complete $k$-vertex subgraph. Related work by P. Erdos and G. Szekeres gives only approximate ``few''/``many'' bounds and mainly existence. A precise solution of that corresponding extremal problem appears difficult. Likewise, one would like to sharpen Grunwald Geza's remark that for every $n$ there exists $\ell=\ell(n)$ such that every $n$-vertex graph $A$ (or its complement) contains a complete $\ell$-vertex subgraph.
+
+Now consider countably infinite graphs with vertices $P_1,P_2,\dots$. We seek criteria guaranteeing an infinite complete subgraph. A known theorem of G. Szekeres says: if among any 3 vertices of $A$ at least one pair is connected, then $A$ contains an infinite complete subgraph. Our Theorem II generalizes this: if there exists an integer $d\ge2$ such that among any $d$ distinct vertices at least one pair is connected, then an infinite complete subgraph exists.
+
+A finite analogue of Theorem II would also be interesting, since it would give a criterion different from Theorem I. Namely: if an $n$-vertex graph $C$ has an integer $d<n$ such that among any $d$ vertices at least one pair is connected, then how large a complete subgraph is guaranteed? For $d=4$, I could show the following: if $s$ is the largest integer such that
+\[
+\frac{s(s+1)}{2}\le n,
+\]
+then the graph certainly contains a complete subgraph with $s$ vertices.
+
+Theorem I also immediately answers another question. In a complete graph on $n$ vertices, represent every complete $k$-subgraph by one of its edges. Among all such representations, find one using as few edges as possible. Equivalently: find the smallest edge set that meets every complete $k$-subgraph. Theorem III states that the unique minimum edge set is the complement of $D(n,k)$, i.e., a graph decomposing into $(k-1)$ complete components with pairwise disjoint vertex sets and edge sets. Thus the minimum number of covering edges is
+\[
+\binom{n}{2}-d_k(n).
+\]
+So if we remove any
+\[
+\binom{n}{2}-d_k(n)-1
+\]
+edges from the complete $n$-vertex graph, the remaining graph still contains a complete $k$-vertex subgraph.
+
+\section*{Section II}
+I prove Theorem I in the following form.
+
+\textbf{Theorem I.}
+Among all $n$-vertex graphs with no complete $k$-vertex subgraph, the maximum number of edges is attained by the graph $D(n,k)$ from Section I, and by no other graph.
+
+Denote the maximum by $M_k(n)$ and $|E(D(n,k))|=d_k(n)$. We need to prove $M_k(n)=d_k(n)$, and uniqueness of the extremal graph.
+
+Three simple remarks are needed.
+
+\textbf{(a)} For $v=3,4,\dots,n$,
+\[
+M_v(n)>M_{v-1}(n).
+\]
+Indeed, take a graph $E$ with $n$ vertices, $M_{v-1}(n)$ edges, and no complete $(v-1)$-subgraph. Add one edge to obtain $E'$. Then $E'$ still has no complete $v$-subgraph: otherwise removing the added edge would leave a complete $(v-1)$-subgraph in $E$, contradiction. Hence
+\[
+M_{v-1}(n)+1\le M_v(n).
+\]
+
+\textbf{(b)} $D(n,k)$ contains no complete $k$-vertex subgraph, because among any $k$ chosen vertices at least two lie in the same one of the $(k-1)$ classes, and vertices in the same class are nonadjacent.
+
+\textbf{(c)} For $k\le n$,
+\[
+M_k(n)\le \binom{k-1}{2}+M_k(n-k+1)+(k-2)(n-k+1).
+\]
+Proof: in an extremal graph $A$ with $M_k(n)$ edges and no $K_k$, choose a complete $(k-1)$-subgraph (exists by (a)). Split vertices into this first part and the remaining $(n-k+1)$ vertices. Any vertex in the second part can have at most $(k-2)$ neighbors in the first part; otherwise together with the first part it would form $K_k$. Count edges within first part, between parts, and within second part.
+
+Now fix $k\ge3$ and perform induction ``from $n$ to $n+k-1$,'' arranged by congruence classes modulo $(k-1)$. Let
+\[
+n=(k-1)T+r,
+\]
+with fixed $r$ and variable $T$. Assuming the claim for $T$, prove for $T+1$.
+
+Using (c), one gets
+\[
+M_k((k-1)(T+1)+r)
+\le \binom{k-1}{2}+d_k((k-1)T+r)+(k-2)(n-k+1). \tag{3}
+\]
+Equality in (3) requires both:
+\begin{itemize}
+\item each vertex in the second part has exactly $(k-2)$ neighbors in the first part;
+\item the second part induces exactly $D((k-1)T+r,k)$.
+\end{itemize}
+Among graphs satisfying these equalities, exactly one avoids a $K_k$: namely $D((k-1)(T+1)+r,k)$. The key argument introduces, for each second-part vertex, its unique nonneighbor in the first part (called its \emph{associate}). Vertices from different classes in the second part must have different associates; vertices from the same class must have the same associate. Adding each first-part vertex to its associated class produces $(k-1)$ enlarged classes of the right sizes, with no intra-class edges and all inter-class edges. This is precisely the construction of $D((k-1)(T+1)+r,k)$.
+
+It remains to verify the first column of the induction table. For $r\ne0$ (so $T=1$),
+\[
+M_k(k-1+r)
+\le \binom{k-1}{2}+M_k(r)+(k-2)r
+\le \binom{k-1}{2}+\binom{r}{2}+(k-2)r. \tag{4}
+\]
+Analyzing equality as above again yields exactly the Turan partition structure, so the extremal graph is $D(k-1+r,k)$. The case $r=0$ is analogous.
+
+This completes Theorem I.
+
+Before proving Theorem III, I give a short alternative proof for $n=2m$, $k=3$. It is again induction on $m$. For $m=2$, every 4-vertex graph with 5 edges has a triangle. Assume in a $2m$-vertex graph one can have at most $m^2$ edges without a triangle. Consider a $(2m+2)$-vertex triangle-free graph and remove any edge (say between $P_{2m+1},P_{2m+2}$). Edges with both endpoints among the first $2m$ are at most $m^2$ by induction. Between the two new vertices and the first $2m$, at most $2m$ edges are possible (otherwise a triangle appears). Together with the removed edge:
+\[
+M_3(2m+2)\le m^2+2m+1=(m+1)^2.
+\]
+
+Now Theorem III follows immediately from Theorem I.
+
+\textbf{Theorem III.}
+In the complete graph on $n$ vertices, the unique minimum-size edge set that contains at least one edge from every complete $k$-vertex subgraph is exactly the complement of $D(n,k)$.
+
+\textbf{Proof.}
+Let $E$ be such a minimum covering edge set, with $|E|=x$. In the complement $\bar E$, the edge count is $\binom{n}{2}-x$. Since $E$ meets every $K_k$, graph $\bar E$ contains no $K_k$. By minimality of $x$, $\bar E$ has the largest possible number of edges among $K_k$-free graphs, so by Theorem I, $\bar E=D(n,k)$. Hence $E$ is the complement of $D(n,k)$, uniquely.
+
+\section*{Section III}
+Now we turn to countably infinite graphs.
+
+\textbf{Theorem II.}
+Let $A$ be a countably infinite graph with vertices $P_1,P_2,\dots$. Assume there exists an integer $d>1$ such that among any $d$ distinct vertices of $A$, at least one pair is connected by an edge. Then $A$ has an infinite complete subgraph.
+
+\textbf{Proof.}
+Induct on $d$. For $d=2$ this is trivial. Assume true for $d=\ell$; prove for $d=\ell+1$.
+
+Pick an arbitrary vertex $P_1$.
+
+Case 1: there are infinitely many vertices not adjacent to $P_1$, say $P_{i_1},P_{i_2},\dots$. Let $A_1$ be the induced subgraph on these vertices. In $A_1$, among any $\ell$ vertices at least one pair must be adjacent; otherwise together with $P_1$ we would get $\ell+1$ vertices in $A$ with no adjacent pair, contradiction. By induction, $A_1$ has an infinite complete subgraph, hence so does $A$.
+
+Case 2: only finitely many vertices are nonadjacent to $P_1$. Then there exists $\nu_1$ such that all edges $(P_1,P_{\nu_1}),(P_1,P_{\nu_1+1}),\dots$ are present. Repeat from $P_{\nu_1}$: either we fall into Case 1 and conclude by induction, or we find $\nu_2>\nu_1$ with all $(P_{\nu_1},P_{\nu_2}),(P_{\nu_1},P_{\nu_2+1}),\dots$ present. Continue.
+
+This process either stops after finitely many steps (then Case 1 applies to the tail, giving an infinite complete subgraph by induction), or never stops. If it never stops, then by construction $P_1,P_{\nu_1},P_{\nu_2},\dots$ itself is an infinite complete subgraph.
+
+Thus Theorem II is proved.
+
+\section*{Proof Note (Author's Correction)}
+As Professor Denes Konig observed, $D(n,k)$ can be defined elegantly as follows: label the $n$ vertices by $1,2,\dots,n$, and connect exactly those pairs whose labels are incongruent modulo $(k-1)$. The resulting graph is exactly $D(n,k)$.
+
+Also, as communicated by Jozsef Krausz, the value of $d_k(n)$ given on p.~438 for $k=3$ had already been found by W. Mantel in 1907 (\emph{Wiskundige Opgaven}, vol.~10, pp.~60--61), known to me from a review in \emph{Fortschritte der Mathematik}, vol.~38, p.~270.
+
+\section*{German Summary (Translated)}
+The paper treats the following problem: for given natural numbers $n$ and $k$ ($2\le k\le n$), what is the maximum number of edges in a graph on $n$ vertices (with at most one edge per vertex pair) that contains no complete $k$-vertex subgraph?
+
+A graph $D(n,k)$ is defined (equivalently in Konig's formulation by residue classes modulo $k-1$), and it is proved that $D(n,k)$ is the unique extremal graph. Its number of edges is
+\[
+\frac{k-2}{2(k-1)}(n^2-r^2)+\binom{r}{2},
+\]
+where
+\[
+n\equiv r\pmod{k-1},\qquad 0\le r<k-1.
+\]
+(For $k=3$, this was already found by W. Mantel in 1907.)
+
+The same result can be phrased combinatorially: find a minimum family of 2-element subsets of an $n$-element set that intersects every $k$-element subset.
+
+For infinite graphs, the paper proves: a countably infinite graph always contains an infinite complete subgraph if there exists a natural number $k$ such that every $k$-element vertex set contains at least one adjacent pair. For $k=3$, this theorem is due to G. Szekeres, arising from his group-theoretic investigations related to the Burnside problem.
+
+\end{document}

@@ -1,0 +1,40 @@
+E G Y G R Á F E L M É L E T I SZÉ LS ŐÉ RT ÉKF E LAD ATR OL.
+
+445
+
+között olyan, amelyiknek nincs k szögpontú teljes részgráfja,
+egyetlen egy van és ez éppen a D(k - 1 . T - \- 1 + r, />:) gráf.
+Hogy ezen állításunkat bebizonyítsuk, tekintsük a második
+részhez tartozó szögpontokat. Ezek a D ( k —\ .T - \ - r ,h ) gráf
+definíciója szerint szétesnek (k — 1 ) osztályra, melyek közül r
+számú osztály egyenként {T-(-1) szögpontot, a többi (/,- - r —1)
+számú osztály egyenként T szögpontot tartalmaz, a) szerint
+továbbá minden oly szögponthoz, mely a második részhez tar­
+tozott, tartozik egy és csak egy, az első részhez tartozó oly szög­
+pont, mellyel ő nincs összekötve. Ezen első részbe tartozó szög­
+pontot fogjuk a következőkben az illető, második részhez tar­
+tozó, szögpont asszociáltjának nevezni. Azt állítjuk, hogy két
+oly, a második részhez tartozó szögponthoz, melyek különböző
+osztályokhoz tartoznak, különböző asszociáltak tartoznak. Ugyanis,
+ha ez nem volna igaz, akkor volna két oly szögpont a második
+részben — a jelölés alkalmas megválasztásával épp Pk és P k+i —
+melyek különböző osztályokba esnének és asszociáltjuk közös
+volna éspedig az általánosság rovása nélkül Pt. De ekkor, az
+asszociált definíciója szerint, Pk össze volna kötve P3, P 3>. .., Pk~\gyel és ugyanúgy Pk+Í is; P k össze van kötve P /c+1-gyel a
+D(le —1 . T-f- r, k) gráf definíciója miatt, tekintve, hogy feltevés
+szerint Pk és Pk+i különböző osztályokba tartoznak és a
+Pt, P B, . . . , P /c_i szögpontok bármely párja össze van kötve egy­
+mással az első részbe tartozó szögpontok definíciója szerint. így
+a (Pa, P 3, . . . , P fc_i, Pk, Pk+1) gráf, tehát egy /.'-szögpontú teljes
+gráf, része volna gráfunknak, ami a feltevés ellenére van. Tehát
+a második részhez tartozó, de különböző osztályokba eső szög­
+pontok asszociáltjai különbözők. Azt állítjuk továbbá, hogy két
+oly, a második osztályba tartozó, szögponthoz, melyek ugyanazon
+osztályhoz tartoznak, ugyanazon asszociáltak tartoznak. Ugyanis,
+ha ez nem volna igaz, akkor volna két oly szögpont a második
+részben — a jelölés alkalmas megválasztásával Pk és P k+i —
+melyek az első osztályba esnek és asszcciáltjaik Pv illetve
+P a volnának. Legyen Pfe+2, Pk+3,- ■•. Pük-i egy-egy szögpont a
+második részbe tartozó szögpontok második, harmadik,..., (k— l)-ik
+
+

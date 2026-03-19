@@ -1,0 +1,691 @@
+EGY GRÁFELMÉLETI SZÉLSŐÉRTÉKFELADATRÓL.1
+I. 8.
+Legyenek adva bizonyos pontok, melyekből valamely szabály
+szerint bizonyos pontpárokat összekötünk egymással, a többit
+nem. Az így keletkezett alakzatot nevezzük gráfnak. Az eredeti­
+leg adott pontok a gráf szögponljai, az összekötő vonalak a
+gráf élei. A gráf általános fogalma megengedné, hogy ugyanazon
+két szögpont esetleg több éllel legyen összekötve; e dolgozatban
+azonban a gráf szót mindenkor abban a szűkebb értelemben
+használjuk, melynél bármely két szögpont legfeljebb egy éllel van
+összekötve. Gráfot nyerünk pl., ha az n pontnak, P v P „ . . . , P n nek, rendre megfeleltetjük egy »-tagú társaság tagjait és a P t P j
+élt akkor és csak akkor húzzuk meg, ha a társaság t-ik és j'-ik
+tagjai ismerik egymást. Egy B gráfot az A gráf részgráfjának
+nevezünk, ha B minden éle és szögpontja szerepel A-ban. Az
+A
+gráfot akkor nevezzük telj es gráfnak, ha A bármely két szög­
+pontját összekötő él szerepel A-ban. Az n szögpontból álló
+teljes gráfot némelykor teljes »-szögnek is fogom nevezni2 és
+ha szögpontjai P v P v..., P n , akkor ( P v P v . . P n ) - e 1 fogom
+jelölni. Egy A gráf kiegészítő gráfja alatt azon, a későbbiekben
+A-val jelzendő, gráfot értjük, melynek szögpontjai az eredeti
+gráfnak is szögpontjai és élei az A gráfot teljes gráffá egészítik
+1 E tá rg y ró l szerző előadást tartott az Eötvös Loránd M atem atikai és
+Fizikai T ársulat 1941. márc. 27.-i ülésén.
+2 H a w = 3 , akkor is «teljes» háromszögről fogok beszélni az egyöntetű­
+ség végett.
+
+EG Y G R Á F E L M É L E T I SZÉ LS ŐÉ RT ÉKF E LAD ATR ÓL.
+
+437
+
+ki. Ha például az A gráf szögpontjai Pv P% és P3, élei pedig
+P J \ és PtP.j, akkor az Ä gráf szögpontjai P„ és P3, egyetlen
+éle pedig P 2P3. Ezzel már ismertettük a gráfelmélet azon alap­
+fogalmait, amelyek a későbbiekben szerepelnek.
+A kérdés, amivel foglalkozunk, szemléletes interpretációban
+a következő : n-számú játékos egyszeri körmérkőzést játszik, mely
+N számú mérkőzés lejátszása után abbamarad. Milyen nagynak
+kell lenni a lejátszott játszmák N számának, hogy biztosan
+következtetni tudjunk arra, hogy a játékosok között van legalább
+k játékos, akik egymás közt lejátszották a körmérkőzést? Ter­
+mészetesen n, k, N -re feltesszük, hogy
+3 ^ ík ^ n ,
+Ha minden játékosnak rendre megfeleltetjük a különböző
+P v P 2,..., P „ pontokat és a P i t P j
+pontokat akkor és csak akkor
+kötjük össze egyetlen éllel, ha az i-ik és j-ik játékosok mérkő­
+zése szerepelt a lejátszott N mérkőzés között, akkor egy n
+szögpontú A gráfot nyerünk, melyben N él szerepel és melynek
+van egy k szögpontú teljes részgráfja. Ekkor kérdésünk úgy is
+fogalmazható, hogy milyen nagynak kell lenni IV-nek, hogy az
+n számú szögpont között bárhogyan húzok is meg N számú
+élt, a kapott gráfban biztosan legyen k szögpontú teljes rész­
+gráf. Egy harmadik, nyilván az előbbivel egyenértékű fogalmazás,
+a következő: a P v P a > . .., JR„ szögpontú gráfban legfeljebb hány
+él szerepelhet, ha a gráfnak nines le szögpontú teljes részgráfja?
+Ezen maximális élszám természetesen csak »-tői és k-tói függ ; ha
+ezt Mk(n)-nel jelöljük, akkor minden n szögpontú gráfban,
+melyben legalább Mk(ri) -f- 1 él szerepel, biztosan létezik k szög­
+pontú teljes részgráf. Feladatunk tehát ezen Mán) meghatáro­
+zása; ez fogja jelenteni azt a szélsőértékfeladatot, melyre a
+dolgozat címe vonatkozik.
+Vizsgálatunkban nagy szerepe lesz egy speciális gráfnak, melyet
+D(n, á'j-val fogunk jelölni, éleinek számát pedig dán)-nel. E grá­
+fot a következő, látszólag mesterkélt módon értelmezzük. Osszuk
+
+438
+
+T ÚRÁN PÁL.
+
+el «-et (k— l)-el; az osztás hányadosa legyen t, maradéka r,
+vagyis
+n = ( k ~ l) t + r,
+k —2 .
+Ekkor a Pv P%,. . . , P n szögpontokat osszuk (k — 1) osztályba
+úgy, hogy az első r osztály mindegyikébe (t + 1) szögpontot,. a
+többi (k—r —í) osztály mindegyikébe t szögpontot teszünk; ez­
+által nyilván valamennyi szögpont beleesik egy és csak egy
+osztályba. Mármost bármely két oly szögpontot, mely nem
+esik közös osztályba, kössünk össze egymással, viszont oly
+P„ Pj szögpontpárokat, melyek közös osztályba esnek, nem. Ezzel
+a D (n, k) gráf szerkezetileg egyértelműen meg van határozva.3
+A D{7, 4) gráf az ábrán
+látható; itt r = 1 , t = 2 ;
+P,, P2, P 3 szögpontok tar­
+toznak az első osztályba,
+Pi és P 5 a másodikba,
+P 6 és P , a harmadikba.
+Kimutatjuk, hogy ezen
+D(n, k) gráf és csak ez
+képezi szélsőértékfeladatunk megoldását. Más szó­
+val, ha egy n szögpontú
+gráfban legalább 1 + dán) számú él van, akkor biztosan van
+benne egy k szögpontú teljes részgráf; ha azonban csak dtfn)
+számú ól van benne, akkor van olyan, egyértelműen meghatáro­
+zott gráf (éppen az előbb definiált D(n, k) gráf), melyben nincs
+Á-szögpontú teljes részgráf. Ez lesz az I. tétel. Könnyen igazol­
+ható, hogy (1) jelölésével
+
+3 Ezen gráfra n = 0 (mod 3), /c=4 esetben W inklek J ózsef mérnök ú r
+volt szives figyelmemet felhívni.
+
+EGY G R Á F E L M É L E T I SZÉ LSÓ'É RTÉKFELADATRÓL.
+
+439
+
+de e tényre a bizonyításban nem lesz szükség. Mivel k — 3
+esetében
+
+azért, az előbbi interpretációban, a mérkőzéseknek több, mint a
+felét le kell játszani ahhoz, hogy biztosan állíthassuk, hogy egy
+hármas körmérkőzés lezajlott.4
+Az I. tétel kritériumot ad arra, hogy egy véges szögpont­
+számú gráfnak legyen k szögpontú teljes részgráfja. Ezen gondolat­
+körbe vágó — tudomásom szerint egyetlen — tétel E rdős P ál
+és Szekeres György egy közös dolgozatában található 5 és lénye­
+gileg úgy fogalmazható, hogy, ha egy n szögpontú A gráf olyan,
+hogy az Ä kiegészítő gráf csak «kevés» szögpontszámú teljes
+részgráfot tartalmaz, akkor maga az A gráf biztosan tartalmaz
+egy «sok» szögpontú teljes részgráfot. Tételük a «kevés» és
+«sok» megjelölések helyén csak becsléseket tartalmaz, sőt majd­
+nem csak az exisztenciát fejezi k i; a megfelelő szélsőértékfeladat pontos megoldása igen érdekesnek, de nehéznek látszik
+éppúgy, mint Grünwald GÉzÁnak ebből folyó következő meg­
+jegyzésének pontosítása: minden pozitív egész n-hez létezik oly
+l — l (n), hogy egy tetszőleges n szögpontú A gráfban, vagy
+Ä-ban mindig van /-szögpontú teljes részgráf.
+Legyen most a vizsgálandó A gráfnak megszámlálható ß,n
+végtelen sok szögpontja, Pt ,P v ... és keressünk kritériumokat
+arra, hogy A-nak biztosan legyen végtelen sok szögpontú teljes
+részgráfja. Az erre vonatkozó egyetlen ismeretes tétel Szekeres
+GYÖRGYt ő l 6 származik és következőképp szól. Ha a vizsgált
+4 Ebből d3(2«)=w2 ; ha tehát a 2n szögpontú gráfban legalább (w2-|-l)
+él szerepel, akkor biztosan van benne teljes 3-szög, n2 él esetén ez nem
+biztos. M int E rdős P ál levélbeli közléséből tudom, H. B ademacher e tételt
+olykópp szigorította, hogy (n2+ l ) él esetén nemcsak egy, hanem m indjárt
+legalább n számú teljes 3-szög van a gráfban. Mint E rdős P ál kim utatta,
+(n2-)- 2) ól esetén a gráfban legalább 2n szám ú teljes 3-szög van.
+5 P. E rdős and Gr. S zekeres : A Combinatorial Problem in Geometry.
+Compositio Mathematica, 1935, vol. 2, p. 463— 470.
+6 Levélbeli közlés.
+
+440
+
+T UBÁN P Á L.
+
+A gráf olyan tulajdonságú, hogy bárhogy veszek is ki a szög­
+pontokból 3 különbözőt, ezek közül lesz legalább két olyan
+szögpont, melyeket összekötő él benne van A-ban, akkor Á-nak
+biztosan van végtelen teljes részgráfja.7 II. tételünk ennek álta­
+lánosítása, amennyiben biztosítjuk minden olyan, megszámlálhatóan végtelen sok szögpontú B gráfban egy végtelen sok szög­
+pontú teljes részgráf létezését, melyhez van olyan pozitív egész
+d szám, hogy d 2 és bárhogyan veszünk is ki B szögpontjai
+közül d számú különbözőt, ezek között van legalább két olyan
+szögpont, melyeket összekötő él benne van B-ben. Ez d — 3-ra
+Szekekes fenti tétele.
+Érdekes feladat volna a II. tétel véges analogonját megtalálni,
+mivel ez véges gráfnál másszerű kritériumot adna teljes részgráf
+létezésére, mint az I. tétel. A II. tétel véges analogonja alatt pon­
+tosabban a következőkét értjük. Legyen adva az n szögpontú
+C gráf, amélyhez van egy olyan, n-nél kisebb, pozitív egész
+d szám, hogy a szögpontokból bárhogy véve is ki d számú
+különbözőt, ezek között van legalább két olyan szögpont, melye­
+ket összekötő él C-nek éle. Ekkor hány szögpontú teljes rész­
+gráf létezését tudjuk biztosítani? E kérdés tisztázására máshelyütt
+szeretnék visszatérni; egyelőre a d = ‘i esetben annyit sikerült
+kimutatnom, hogy, ha s a legnagyobb egész szám, melyre még
+■S^S
+
+^ <; n, akkor a gráf biztosan tartalmaz s szögpontú tel­
+
+jes részgráfot. Ennek bizonyítását nem részletezzük.
+Az I. tétel egy másik érdekes kérdésre is rögtön választ ad.
+Egy teljes n-szögben minden teljes k-szöget reprezentáljunk egy
+élével; természetesen k ^ n . Ezen reprezentálás nyilván nagyon
+sokféleképp vihető keresztül. Keresendő azonban azon reprezentálási mód, mely a lehető legkevesebb számú éllel reprezentál.
+A kérdés úgy is kifejezhető, hogy égy adott egész k számhoz,
+melyre 3 gLk < .n, keresendő az n szögpontú teljes gráf oly éleinek
+7
+M int S zekeres G yörgy levélileg közölte, ily en típ u sú gráfokhoz a
+a nevezetes BüRNSiDE-féle csoportelm életi problém ának, ill. ennek egy,
+G rünwald GÉzÁtól eredő m ó d osított a lak ján ak vizsg álata közben ju to tt.
+
+EGY G R Á F E L M É L E T I S Z É L S Ő É R T É K F E L A D A T R O L .
+
+441
+
+minimális száma, melyek együttesen minden teljes k-szöget «lefog­
+nak». A III. tétel erre pontos választ ad, amennyiben kimondja,
+hogyezen minimális élszámú lefogó élrendszer egyedül az előbb
+definiált D(n, k) gráf kiegészítője, tehát egy olyan gráf, mely
+szétesik (Je—1) számú teljes gráf összegére.8 A minimális lefogó
+élszám tehát f j - dlc(n ) ; vagyis: egy n szögpontú teljes gráf­
+ból bárhogy távolítunk is el
+
+\ — cZ&(n) —1 számú élt, a meg­
+
+maradó gráf biztosan tartalmaz k szögpontú teljes részgráfot.
+Azon természetesen adódó általánosabb kombinatorikus kérdésre,
+hogy n elem Z-edosztályú kombinációi közül legalább hányat
+kell kivenni, hogy minden /c-adosztályú kombinációban legyen
+legalább egy kiválasztott Z-edosztályú (l < k), egyelőre nem tudok
+válaszolni ; az l = 2 esetet azonban a III. tétel tökéletesen el­
+intézi. A III. tétel az előbbi bekezdésben definiált gráfokra is
+ad tájékoztatást éspedig olyan értelemben, hogy az ilyen tulaj­
+donságú gráfokra, ha szögpontjaik száma n, nem lehet «túlkevés» éle; pontosabban, éleinek száma legalább
+A véges gráfokra vonatkozó I. és III. tételeket a II. §.-ban,
+a végtelen gráfokra vonatkozó II. tételt a III. §.-ban fogom
+bebizonyítani.
+II. 8.
+Az I. tételt a következő formában bizonyítjuk b e :
+I. tétel. Azon n szögpontú gráfok közül, melyeknek nincs
+k szögpontú teljes részgráfjuk, a legtöbb éle az I. §.-őtro
+definiált D(n, k) gráfnak és csak ennek van.
+Mint az I. §.-ban említettük, a keresett maximális élszámot
+M,,.(n)-nel jelöljük, a D (n, le) gráf éleinek számát pedig dk(n)-nel;
+tehát azt kell bizonyítani, hogy Mk(n) — dk{n) és hogy az I.
+tételben kívánt tulajdonságú gráfok között csak a D{n, k) gráf­
+nak van d/fn) számú éle.
+8
+Vagyis ( k —1) számú olyan teljes gráfra, melyeknek páronkint sem
+közös élük, sem közös szögpontjuk nincs.
+
+4 42
+
+TÚRÁN P Á L.
+
+A bizonyításhoz szükség van bárom egyszerű megjegyzésre r
+a) Bebizonyítjuk, hogy Mt(n) > Mv_i(n) (v = 3, 4 , . . n).
+Tekintsünk ugyanis egy E gráfot, melynek n szögpontja,
+Mr_i(w) éle van és nem tartalmaz teljes (v—l)-szöget. Vegyünk
+ebhez hozzá egy élt (ez v ^ n miatt megtehető) és tekintsük a
+kapott E' gráfot, melynél az élek száma tehát
++ 1. Azt
+állítom, hogy az E gráf nem tartalmazhat v szögponlú teljes
+részgráfot. U. i., ha tartalmazna egy v szögpontú teljes részgráfot,
+E"- 1, melynek szögpontjai, a jelölés alkalmas megválasztásával,
+P V P V. . . , P V volnának, akkor két eset képzelhető: E" vagy
+tartalmazza az A-hez hozzátett élt, vagy nem. A második eset
+nyilván nem lehetséges, mert ekkor az E" gráf A’-nek is rész­
+gráfja volna, ami nem lehet, mert A-nek még (v—1) szögpontú
+teljes részgráfja sincs a definíciója szerint. De az első eset is
+lehetetlen; ha ugyanis a hozzátett él benne volna A"-ben és
+ez az él — ami az általánosság rovása nélkül feltehető — épp
+PjjRj volna, akkor a (P2, P3,..., P,) teljes gráf A-nek részgráfja
+volna, ami E definíciójának ellentmond. Tehát az E gráf való­
+ban nem tartalmaz v szögpontú teljes részgráfot, vagyis éleinek
+száma <l: Mv(n). Tehát
+-j- 1 rg Mv(n).
+Q. e. iL
+b) Bebizonyítjuk, hogy a D in, k) gráfnak valóban nincs k
+szögpontú teljes részgráfja.
+Ez egyszerűen onnan következik, hogy a k — 1 számú osztály
+valamelyikébe a k számú szögpont közül legalább kettőnek kell
+esni. De ezen két szögpont a Din, k) gráf definíciója szerint nem
+lehet összekötve.
+c) Bebizonyítjuk, hogy k <^n-re
+M/cin) ^ | *2 j + Micin—k + 1) -f- ik—2 ) (n—k -j- 1).
+Tekintsünk ugyanis egy oly n szögpontú A gráfot, melynek
+nincs k szögpontú teljes részgráfja és melyben az élek száma
+M/cin). Az a) alatti segédtétel szerint A-nak van (/c — 1) szög­
+pontú teljes részgráfja; a jelölést megválaszthatjuk úgy, hogy
+
+EGY GRÁ FELM ÉLETI SZÉLSŐÉRTÉKFELADATRÓL.
+
+443
+
+ez (Pv
+Pfc_i) legyen, a többi szögpont: Pk, Pk+U... Pn.
+Ezáltal a szögpontokat két részre osztottuk. Figyeljük meg,
+hogy bármelyik oly szögpontból, mely a második részbe tartozik,
+az első részhez tartozók felé legfeljebb (k— 2 ) él indul ki; mert,
+ha például /\--ból (k — 1) ilyen él indulna ki, akkor a definíció
+szerint a (Plt Pv . .., Pk—u P k) gráf (tehát egy k szögpontú teljes
+gráf) /1-nak része volna, ami ellentmond A definíciójának. Mivel
+a második részhez tartozó szögpontok száma (n — k -f 1), az
+olyan élek száma, melyek különböző részekhez tartozó szögpon­
+tokat kötnek össze, legfeljebb
+( f c - 2 )(» -fc + l).
+Azon élek száma, melyek mindkét végpontja az első részhez
+tartozik, nyilván pontosan
+
+Végül azon élek száma, melyek mindkét végpontja a második rész­
+hez tartozik, leqfeljebb
+M/,(n —&H-1);
+ugyanis a második részbe (n—Zc-f-l) szögpont esik és az ezeket
+egymás közt összekötő élek által alkotott gráf se tartalmazhat
+k szögpontú teljes részgráfot. Mindezekből a bebizonyítandó
+egyenlőtlenség következik.
+Ezek után rátérhetünk az I. tétel bizonyítására. A bizonyí­
+tást fix k 2 / 3 mellett «n-ről (« -j- k —l)-re való teljes indukció­
+val» végezzük, ami alatt pontosan a következőket értjük. Fix k
+mellett n változzék; nyilván csak oly w-ekre kell a tételt be­
+bizonyítani, melyek (k - l)-nél nagyobbak. Az n lehetséges érté­
+keit a következőkép csoportositjuk
+(k)
+(* + l)
+
+(2* — 1)
+m
+
+(Sk —2)
+(Bk — 1 )
+
+.
+.
+
+.
+.
+
+.
+.
+
+(2 Ä -2 )
+
+(3/c — 3)
+
+(4 ft-4 )
+
+.
+
+.
+
+.
+
+ahol tehát közös sorban állanak azon n-értékek, melyek mod (k—1)
+kongruensek. A tétel be lesz bizonyítva, ha előbb bebizonyít­
+
+444
+
+TÚRÁN P Á L .
+
+juk (2 ) táblázat első oszlopának «-értékeire, azután külön
+minden egyes sorra. A bizonyítási módszer jobb kiemelése
+végett e logikai sorrendet idó'belileg megfordítjuk és előbb —
+feltételezve, hogy a tétel az első oszlop elemeire már igazolva
+van — bebizonyítjuk minden egyes sorra, azután pedig minden
+feltételes állítástól függetlenül az első oszlop «-értékeire.
+Tekintsük tehát (2) táblázat azon sorát, melyben az « = (&—l j f + r
+alakú értékek vannak, hol r fix és t változik. Tegyük fel, hogy
+a tétel már t ^ T - r e igazolva van és be akarjuk bizonyítani
+t = (T + l)-re, azaz n = (lc — 1) (T + 1) -)- r-re ; itt T ^ . 1, ha
+1 <g r <; (le — 2) és T ;> 2, ha r — 0 mint az a (2) táblázatból lát­
+ható. Tekintsük a c) alatti egyenlőtlenséget n —
+rel és vizsgáljuk, mikor helyettesíthető benne a <s jel egyenlő­
+séggel. Mint ott kiemeltük, csak a második és harmadik tagot
+kell e szempontból megvizsgálni. A harmadik tagnál nyilván
+akkor és csak akkor nem növeltünk, ha a második részbe tar­
+tozó minden szögpontból épp (k — 2 ) él indul az első részhez
+tartozó szögpontok felé. A második tagban pedig nyilván akkor
+és csak akkor állhat egyenlőség, ha a második részbe tartozó
+szögpontok oly (k — V)T-\-r szögpontú gráfot alkotnak, melyben
+nincs k szögpontú teljes részgráf és élszáma az ilyen gráfok
+között maximális; de ekkor az indukciós feltevésünk alapján
+a második részbe tartozó szögpontok alkotta gráf azonos a
+D (k —1 . T-\- r, k) gráffal, élszáma tehát dk(k — \.T -\-r)- Nyer­
+tük tehát, hogy
+M k{ k ~ \
+
+T + í
+
++ r) £ ( k 2 1) + dk{Í* - ~ l ■T + r) +
++ (k - 2 )( n — k + 1 ).
+
+(3)
+
+Az egyenlőség akkor és csak akkor áll (3)-ban, ha
+a) a második részbe tartozó mindegyik szögpontból épp (k — 2 )
+él indul ki az első részbe tartozók felé és
+ß) a második részbe tartozó szögpontok alkotta gráf azonos
+a D(k — \ . T - \ - r ,k ) gráffal.
+Olyan [(k - 1) (T-(-l)-l-r] szögpontú gráf, mely az a) és ß)
+feltételeket kielégíti, sok van; kimutatjuk azonban, hogy ezek
+
+E G Y G R Á F E L M É L E T I SZÉ LS ŐÉ RT ÉKF E LAD ATR OL.
+
+445
+
+között olyan, amelyiknek nincs k szögpontú teljes részgráfja,
+egyetlen egy van és ez éppen a D(k - 1 . T - \- 1 + r, />:) gráf.
+Hogy ezen állításunkat bebizonyítsuk, tekintsük a második
+részhez tartozó szögpontokat. Ezek a D ( k —\ .T - \ - r ,h ) gráf
+definíciója szerint szétesnek (k — 1 ) osztályra, melyek közül r
+számú osztály egyenként {T-(-1) szögpontot, a többi (/,- - r —1)
+számú osztály egyenként T szögpontot tartalmaz, a) szerint
+továbbá minden oly szögponthoz, mely a második részhez tar­
+tozott, tartozik egy és csak egy, az első részhez tartozó oly szög­
+pont, mellyel ő nincs összekötve. Ezen első részbe tartozó szög­
+pontot fogjuk a következőkben az illető, második részhez tar­
+tozó, szögpont asszociáltjának nevezni. Azt állítjuk, hogy két
+oly, a második részhez tartozó szögponthoz, melyek különböző
+osztályokhoz tartoznak, különböző asszociáltak tartoznak. Ugyanis,
+ha ez nem volna igaz, akkor volna két oly szögpont a második
+részben — a jelölés alkalmas megválasztásával épp Pk és P k+i —
+melyek különböző osztályokba esnének és asszociáltjuk közös
+volna éspedig az általánosság rovása nélkül Pt. De ekkor, az
+asszociált definíciója szerint, Pk össze volna kötve P3, P 3>. .., Pk~\gyel és ugyanúgy Pk+Í is; P k össze van kötve P /c+1-gyel a
+D(le —1 . T-f- r, k) gráf definíciója miatt, tekintve, hogy feltevés
+szerint Pk és Pk+i különböző osztályokba tartoznak és a
+Pt, P B, . . . , P /c_i szögpontok bármely párja össze van kötve egy­
+mással az első részbe tartozó szögpontok definíciója szerint. így
+a (Pa, P 3, . . . , P fc_i, Pk, Pk+1) gráf, tehát egy /.'-szögpontú teljes
+gráf, része volna gráfunknak, ami a feltevés ellenére van. Tehát
+a második részhez tartozó, de különböző osztályokba eső szög­
+pontok asszociáltjai különbözők. Azt állítjuk továbbá, hogy két
+oly, a második osztályba tartozó, szögponthoz, melyek ugyanazon
+osztályhoz tartoznak, ugyanazon asszociáltak tartoznak. Ugyanis,
+ha ez nem volna igaz, akkor volna két oly szögpont a második
+részben — a jelölés alkalmas megválasztásával Pk és P k+i —
+melyek az első osztályba esnek és asszcciáltjaik Pv illetve
+P a volnának. Legyen Pfe+2, Pk+3,- ■•. Pük-i egy-egy szögpont a
+második részbe tartozó szögpontok második, harmadik,..., (k— l)-ik
+
+446
+
+TÚRÁN PÁL.
+
+osztályából. Előbbi észrevételünk alapján P /c+2, • . P-ik—i szög­
+pontok asszociáltj ai különbözők (hiszen P/l+2,. . P%k—i különböző
+osztályokba esnek) ezen asszociáltak különböznek Pt és P 2-től
+(hisz Pk és P/c+i, melyeknek P a, illetve P 2 az asszociáltjai, az
+első osztályba tartoznak, tehát másba, mint P/t+2, vagy P fc+3,...
+vagy Píi.—t). Vagyis, ha P /c és I\+ i asszociáltj ai különbözők
+volnának, akkor a különböző asszociáltak száma legalább k volna;
+de ez lehetetlen, mert az asszociáltak az első részhez tartozó
+szögpontok és az első részhez annak definíciója szerint épp (k — 1)
+szögpont tartozik. Azt nyertük tehát, hogy a {(/c —1) (T’-j-1) -f- r}szögpontú, a) és ß) tulajdonságokkal rendelkező gráf, ha nincs
+k szögpontú teljes részgráfja, olyan, hogy a második részhez
+tartozó szögpontok minden osztályához egy közös asszociált
+tartozik és e közös asszociált mind a (k —1 ) osztályra más és
+más. Mármost m in d a (k—1) osztályhoz csatoljuk hozzá a bele­
+tartozó szögpontok közös asszociáltját; így az első részbe tartozó
+szögpontok pontosan definiált módon «felszívódtak» a (k— 1)
+számú eredeti osztályba. Ekkor az asszociált definíciója alapján
+a bővített osztályok mindegyikének szintén meglesz az a tulaj­
+donsága, hogy közös osztályba tartozó szögpontpár nincs éllel
+összekötve. Nyilvánvalóan a bővített osztályok közül az első
+r számú osztály mindegyikébe épp
+szögpont, a többi
+(k — r — 1) osztály mindegyikébe ( P + l) szögpont esik. Ha még
+belátjuk, hogy bármelyik két különböző bővített osztályból
+is véve ki egy-egy szögpontot, ezek egymással össze vannak kötve,
+akkor gráfunk épp a D{k — 1. T + l + r, k) gráf, mely b) szerint
+valóban nem tartalmaz fc-szögpontú teljes részgráfot. Tehát ezzel
+I. tétel be lesz bizonyítva, feltéve még természetesen, hogy a
+tétel a (2 ) táblázat első oszlopának n-értékeire igaz.
+Hogy azonban bármely két oly szögpont, mely különböző
+bővített osztályokba tartozik, mindig össze van kötve egymással,
+az előbbiek alapján könnyen belátható. H a a vizsgálandó két
+szögpont mindegyike a második részhez tartozott, akkor ez a
+D (k —Í . T-f r, k) gráf definíciójából következik. Ha a vizsgálandó
+szögpontok mindkettője az első osztályba tartozott, akkor ezek,
+
+EGY G R Á F E L M É L E T I S Z É L S Ő É R T É K F E L A D A T R O L .
+
+447
+
+definíció szerint a (Zc—1) szögpontú (Pv Pv ..., Pk—j) teljes rész­
+gráf szögpontjai lévén, össze vannak kötve egymással. Ha végül
+a vizsgálandó szögpontok egyike az első részbe tartozott, másika
+a másodikba, akkor, mivel e két szögpont a feltevés szerint
+különböző bővített osztályokba esik, a bővített osztályok definí­
+ciója szerint az a szögpont, mely az első részbe tartozott,
+nem asszociáltja annak, amelyik a másodikba tartozott; lehát
+az asszociált definíciója szerint e két szögpont össze van kötve
+egymással.
+így tehát csak azt kell még bebizonyítani, hogy a (2 ) táblá­
+zat első oszlopának %-értékeire a tétel igaz. Legyen először
+r =t=0 és így T — 1. Ekkor c) alapján
+Mk(k - 1 + r) _<g (/C2 1 ) + Mk(r) + (k - 2 ) r ^
+(4)
+
+Nézzük meg, mikor válbatik a (4) egyenlőtlenség egyenlőséggé.
+Nyilván akkor és csak akkor, ha az r számú, második részbe
+tartozó szögpont mindegyike épp a (k — 2 ) első részbe tartozó­
+val van összekötve és a második részbe tartozó szögpontok rszögpontú teljes részgráfot alkotnak. Egy ilyen gráfban tehát egy
+második részbe tartozó szögpont asszociáltját ugyanúgy értel­
+mezhetjük, mint az előbb. Pontosan úgy, mint előbb, bebizo­
+nyíthatjuk, hogy csak akkor lehetséges, hogy ne legyen a gráf­
+ban egy k szögpontú teljes részgráf, ha bármely két oly külön­
+böző szögpontnak, melyek a második részhez tartoztak, az
+asszociáltjai különbözők. (Természetesen ekkor nem mindegyik,
+első részbe tartozó szögpont lesz asszociált!) A jelölést meg­
+választhatjuk úgy, hogy Pk asszociáltja legyen Pv Pk+i~é
+Pv . . . , P k- i +r-é pedig Pr; a P r+i, P r+2, . .., P *_1 első részbe
+tartozó szögpontok tehát nem asszociáltak. De ekkor egy osz­
+tályba véve P/rt és Pt et, Pk+ret, és P 2-t,..., P fc_ i+r-et és P,-et,
+továbbá külön osztályoknak P,.+i-et, Pr+2-t,-• Pk—i-et, (Zc—1)
+számú osztályt nyertünk, melyek közül az első r osztály mind­
+
+448
+
+T U B Á N PÁL.
+
+egyike 2 = T -p l szögpontot, a többi ( k — 1 — r) osztály mind­
+egyike 1 T számú szögpontot tartalmaz. Hogy a fenti feltéte­
+leket kielégítő gráfokat a D (k —1-j- r, k) gráffal identifikálhassuk,
+először azt kell belátni, hogy közös osztályba tartozó szögpon­
+tok soha sincsenek összekötve egymással, másodszor, hogy
+különböző osztályba tartozók viszont mindig. Az első állítást
+nyilván csak az első r osztályra kell igazolni; ezekre pedig az
+osztályoknak és az asszociált definíciója alapján az állítás evidens.
+A második állítás igazolására elég megjegyezni, hogy az osztá­
+lyok szerkesztése szerint a
+—1 ) számú, első részhez tartozott
+szögpont bármely párja egymással össze van kötve, ugyanez áll
+azon r számú szögpontra, melyek a második részt alkotják;
+az első és második részbe tartozó szögpontok közül a szerkesz­
+tés szerint csak azok nincsenek összekötve, melyeknél az első
+részbe tartozó szögpont a másodikba tartozónak asszociáltja.
+De ezek épp azon szögpontpárak, melyek egy-egy osztályt alkot­
+nak. Tehát r =j=0 esetben a bizonyítás teljesen be van fejezve;
+ha r = 0 és így 7’== 2 , a bizonyítás teljesen ugyanígy halad,
+csak az összes alosztályok két-két szögpontot tartalmaznak.
+A bizonyítás ezzel be van fejezve.
+Mielőtt rátérnék — mint az I. §.-ban említettem — a III.
+tétel bizonyítására, az n = 2m, k = 3 esetre egy másik, rövidebb
+bizonyítást közlök. Ezen bizonyítás igen egyszerű lesz és módo­
+sításával — az extrém gráf unicitásától eltekintve — az I. tétel
+bevezethető minden n és Á-ra, de számítást igényel és ez az álta­
+lános esetben meglehetősen áttekinthetetlen. Ez a bizonyítás is
+teljes indukción alapszik. Ugyanis m = 2-re könnyen belátható,
+hogy 5 = 2 ‘2 1 él létezése mellett minden 4 szögpontú gráfban
+biztosan van teljes háromszög; tegyük fel bebizonyítottnak, hogy
+egy n — 2 m szögpontú gráfban legfeljebb m2 számú él húzható
+meg úgy, hogy ne legyen benne teljes háromszög és vizsgáljuk
+meg az n — 2m -f 2 szögpontú gráfokat. Tekintsünk egy olyan
+gráfot, melynek (2m + 2) szögpontja, A73(2m -j- 2) éle van és
+nincs benne teljes háromszög. Vegyünk ki e gráfból egy tetsző­
+leges élt; a jelölést úgy választhatjuk meg, hogy ennek vég­
+
+EG Y G R Á F E L M É L E T I S Z É L S Ő É R T É K F E L A D A T R O L .
+
+449
+
+pontjai Pim+u ill. P-im+'-i legyenek. A gráf élei részint oly P{ és
+Pic szögpontokat kötnek össze egymással, melyre max (i, k) g 2 m,
+részint olyanokat, melyekre min (i, k) <g 2 m < max (i, k) végül
+olyanokat, melyekre min (i, k) > 2m. Utolsó típusú él persze
+csak egy van; első típusú él az indukciós feltevés miatt nv‘.
+A második típusú élek száma 5 ' 2m ; u. i. a P x, P2,..., Pim
+szögpontok egyike sem lehet úgy Pam+i-el, m int P jTO+2-vel össze­
+kötve (mert ha például P 1 mindkettővel össze volna kötve; akkor
+P&m+i és P*n +2 definíciója szerint a (Plt P-im+1, P-im+v) gráf
+része volna gráfunknak, annak definíciója ellenére). Tehát
+ilí3(2 m + 2 ) 5g m- + 2 m + 1 = (m -f l)2.
+
+0 . c. d.
+
+Ezután rátérünk a III. tétel bizonyítására, mely az I. tételből
+igen egyszerűen fog következni.
+111.
+tétel. A z n szögponlú teljes gráfban azon minimális
+szám ú élből álló élrendszert, mely minden k szögpontú teljes
+részgráfból legalább egy élt tartalmaz, az I. j.-ban értelmezett
+D in, k) gráf kiegészítő gráfja és csak ez adja.
+E tétel következőképp bizonyítható. Legyen egy minimális
+élszámú, kívánt tulajdonságú élrendszer E és éleinek száma x .
+Tekintsük az E gráfnak E kiegészítő gráfját; É éleinek száma
+tehát
+
+j — x. Minden olyan élrendszer, amely minden Á-szög-
+
+pontú részgráfból legalább egy élt tartalmaz, nyilván olyan, hogy
+a kiegészítő gráfjában nincs k szögpontú teljes részgráf; mivel
+E ezen élrendszerek közül a minimális élszámú, azért É azon
+m axim ális élszámú gráf lesz, melynek nincs k-szögpontú teljes
+részgráfja. Tehát az I. tétel szerint az E gráf azonos D{n, k)~
+val, amivel már a III. tétel be is van bizonyítva.
+m . §.
+Most rátérünk a megszámlálhatóan végtelen sok szögpontú
+gráfokra.
+27. tétel. A megszámlálhatóan végtelen sok szögpontot tar­
+talmazó végtelen A gráfról, melynek szögpontjai Pt, P v . . .
+
+450
+
+TÚRÁN P Á L.
+
+feltesszük, hogy van oly 1-nél nagyobb d egész szám, hogy
+bárhogyan veszünk is ki A szögpontjai közül d számú külön­
+bözőt, ezek között van legalább két oly szögpont, melyeket
+összekötő él benne van A-ban. Ekkor A-nak van legalább egy
+végtelen sok szögpontú, teljes részgráfja.
+A tételt d-re vonatkozó teljes indukcióval bizonyítjuk be.
+d = 2-re a tétel nyilván igaz. Tegyük fel, hogy a tétel d = l-re
+be van bizonyítva és vizsgáljuk a d — l 1 esetet. Legyen Px
+a gráf egy tetszőleges szögpontja. Tegyük fel először, hogy léte­
+zik végtelen sok i \ , ]Jirí, ... különböző pont melyek A-ban f i ­
+gyel nincsenek összekötve. Ekkor azt állítjuk, hogy azon A r vég­
+telen részgráf, melynek szögpontjai épp az előbbi
+szögpontok, olyan tulajdonságú, hogy szögpontjai közül bárhogy
+véve is ki l számú különbözőt, ezek között van legalább két oly
+szögpont, melyeket összekötő él benne van Aj-ben. Ugyanis,
+ha például a Pit, Pia...... Pit szögpontok semelyik párja sem volna
+az Aj gráfban összekötve, akkor a Pv Pit, jR;„ ..., P i( szögpontok­
+nak, tehát (Z-f-1 ) különböző szögpontnak, nyilván az a tulaj­
+donsága volna, hogy semelyik szögpontpár sincs ezek közül
+A-ban összekötve; de ez az A gráf definíciója ellenére van.
+Ekkor azonban az A t gráf az indukciós feltevés alapján tartal­
+maz végtelen sok szögpontú teljes részgráfot; tehát az A gráf
+a fortiori tartalmaz ilyet. Ilymódon csak azon esetet kell még
+megvizsgálni, amikor van oly vt egész szám, hogy a (Pv PH),
+(Pv PVl+i),..., (Pv P„),... élek m ind szerepelnek A-ban. Ekkor
+a PH szögpontra ugyanazt a műveletet végezzük, mint előbb
+Px-re és ugyanúgy nyerjük egy végtelen sok szögpontú teljes
+részgráf létezését az indukciós feltevés alapján, kivéve ismét azt
+az esetet, ha van oly
+> vt egész szám, hogy a (P,,, P V}),
+(Pyv P »1+i),..., (Pn> P«),--- elek m ind szerepelnek A-ban. Ezen
+konstrukció vagy y véges sok lépés után megszakad vagy nem.
+Ha megszakad, akkor a (Pv^, Pvu+i), (PrM, Pt^+a),- ■■ élek között
+van végtelen sok, mely nem éle A -nak; ekkor az indukciós
+feltevés alapján, mint előbb, következik, hogy a Pvß+i, Pv^+'-i,- • •
+szögpontú gráf tartalmaz végtelen sok szögpontú teljes rész­
+
+E G Y G R Á F E L M É L E T I SZÉ LSŐ É R T ÉK FK L ADATRÓL.
+
+451
+
+gráfot, tehát a fortiori A is. Ha viszont nem szakad meg, akkor
+nyilván Pi) Pn , PH, , .. szögpontú teljes gráf maga egy végtelen
+sok szögpontú teljes részgráfja A-nak. Ezzel a II. tétel be van
+bizonyítva.
+A
+Megjegyzés a korrektúránál. Amint K önig D énes professzor
+úr szíves volt megjegyezni, a fenti D (n ,k) gráf a következő
+elegáns módon értelmezhető. Számozzunk meg n pontot rendre
+az 1, 2, 3........n számokkal és azon szögpontokat kössük össze,
+amelyekhez rendelt számok mod (k— 1) inkongruensek. A kapott
+gráf épp D (n, k).
+Továbbá Krausz J ózsef tanár úr szíves közléséből arról érte­
+sülök, hogy dk(n)-nek a 438. lapon adott értékét k — 3 esetre
+már 1907-ben megtalálta W. M antel (Wiskundige Opgaven,
+10. k., 60 —61. o.). Dolgozatát csak a Fortschritte d. Math. (38.
+k., 270. o.) referátumából ismerem.
+Túrán Pál.
+
+EINE EXTREMALAUFGABE AUS DER GRAPHEN­
+THEORIE.
+Das behandelte Problem lautet folgendermassen. Es seien n und k
+gegebene natürliche Zahlen (2 fg k n ) ; wie viele Kanten kann ein
+Graph mit n Knotenpunkten, in dem jedes Knotenpunktepaar durch
+höchstens eine Kante verbunden ist, höchstens enthalten, wenn er
+keinen vollständigen Teilgraphen mit k Knotenpunkten enthält ? (Ein
+Graph heisst bekanntlich vollständig, wenn je zwei seiner Knoten­
+punkte durch eine und nur eine Kante verbunden sind). Es wird zu­
+nächst ein dem gegebenen Paar (n, k) natürlicher Zahlen entsprechen­
+der Graph D(n, k) angegeben, der — in der eleganten Formulierung
+von Prof. D. K ö n ig — folgendermassen definiert werden kann: wir
+numerieren n Punkte der Eeihe nach mit 1
+n und verbinden
+diejenige und nur diejenige Punkte mitainander, denen mod (k—1)
+inkongruente Zahlen zugeordnet wurden. Es wird bewiesen, dass der
+so entstehende Graph D(n, k) (für n — 1, k — 4 s. die Figur ) die
+Matematikai és Fizikai Lapok XLVIIJ.
+
+31
+
+4 5 ■>
+
+T Ú R Á N PÁL.
+
+Lösung, und zwar die einzige Lösung der obigen Extremalaufgabe
+liefert. Die Kantenanzahl dieses Graphen beträgt:
+
+wo r durch
+
+n = r(m odk— 1 ),
+
+0 ;g r< fe — 1
+
+definiert ist. [Für k —3 wurde dieser Satz schon 1907. von W. Mantel
+gefunden (s. Fortschritte d. Math., B. 38, S. 270)]. Die hiedurch
+gelöste Aufgabe kann man — in rein kombinatorischer Fassung —
+auch folgendermassen formulieren. Es soll eine möglichst kleine
+Menge M von Kombinationen zweiter Klasse (ohne Wiederholung)
+aus n Elementen angegeben werden, so dass jede Kombination /e-ter
+Klasse (ohne Wiederholung) dieser n Elemente wenigstens ein Element
+aus M enthält.
+Über unendliche Graphen wird folgender Satz bewiesen. Ein Graph
+mit abzahlbar unendlichvielen Knotenpunkten besitzt stets einen un­
+endlichen vollständigen Teilgraphen, wenn für eine natürliche Zahl k
+folgende Bedingung erfüllt ist: werden k Knotenpunkte des Graphen
+in beliebiger Weise angegeben, so gibt es unter.ihnen stets wenigstens
+zwei solche Knotenpunkte, die durch eine Kante des Graphen verbun­
+den sind. Für k — 3 stammt dieser Satz von Herrn G. Szekeres, der
+durch seine, das BuRNsiDE-sche Problem behandelnde gruppentheore­
+tische Untersuchungen zu solchen Graphen geführt wurde.
+Paul Túrán.
+
+

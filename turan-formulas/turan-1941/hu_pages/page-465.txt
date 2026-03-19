@@ -1,0 +1,45 @@
+EG Y G R Á F E L M É L E T I S Z É L S Ő É R T É K F E L A D A T R O L .
+
+449
+
+pontjai Pim+u ill. P-im+'-i legyenek. A gráf élei részint oly P{ és
+Pic szögpontokat kötnek össze egymással, melyre max (i, k) g 2 m,
+részint olyanokat, melyekre min (i, k) <g 2 m < max (i, k) végül
+olyanokat, melyekre min (i, k) > 2m. Utolsó típusú él persze
+csak egy van; első típusú él az indukciós feltevés miatt nv‘.
+A második típusú élek száma 5 ' 2m ; u. i. a P x, P2,..., Pim
+szögpontok egyike sem lehet úgy Pam+i-el, m int P jTO+2-vel össze­
+kötve (mert ha például P 1 mindkettővel össze volna kötve; akkor
+P&m+i és P*n +2 definíciója szerint a (Plt P-im+1, P-im+v) gráf
+része volna gráfunknak, annak definíciója ellenére). Tehát
+ilí3(2 m + 2 ) 5g m- + 2 m + 1 = (m -f l)2.
+
+0 . c. d.
+
+Ezután rátérünk a III. tétel bizonyítására, mely az I. tételből
+igen egyszerűen fog következni.
+111.
+tétel. A z n szögponlú teljes gráfban azon minimális
+szám ú élből álló élrendszert, mely minden k szögpontú teljes
+részgráfból legalább egy élt tartalmaz, az I. j.-ban értelmezett
+D in, k) gráf kiegészítő gráfja és csak ez adja.
+E tétel következőképp bizonyítható. Legyen egy minimális
+élszámú, kívánt tulajdonságú élrendszer E és éleinek száma x .
+Tekintsük az E gráfnak E kiegészítő gráfját; É éleinek száma
+tehát
+
+j — x. Minden olyan élrendszer, amely minden Á-szög-
+
+pontú részgráfból legalább egy élt tartalmaz, nyilván olyan, hogy
+a kiegészítő gráfjában nincs k szögpontú teljes részgráf; mivel
+E ezen élrendszerek közül a minimális élszámú, azért É azon
+m axim ális élszámú gráf lesz, melynek nincs k-szögpontú teljes
+részgráfja. Tehát az I. tétel szerint az E gráf azonos D{n, k)~
+val, amivel már a III. tétel be is van bizonyítva.
+m . §.
+Most rátérünk a megszámlálhatóan végtelen sok szögpontú
+gráfokra.
+27. tétel. A megszámlálhatóan végtelen sok szögpontot tar­
+talmazó végtelen A gráfról, melynek szögpontjai Pt, P v . . .
+
+
