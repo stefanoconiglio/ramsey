@@ -1,10 +1,15 @@
 #!/usr/bin/env python3
-"""Analyze circulant graphs on t vertices and optionally generate LaTeX output.
+"""Analyze one or many circulant-graph cases and optionally generate LaTeX output.
 
 Each graph corresponds to a nonzero 0-1 jump vector y over
 J={1,...,floor(t/2)}. Therefore the number of possible y-vectors is
 2^|J|-1. The script can analyze either the standard inequality
 sum_l kappa(l,S) y_l <= d_m(|S|) or its lifted variant.
+
+The CLI accepts either explicit scalar values or inclusive min:max ranges.
+When the resolved input expands to a single (t,S,m) case, the script runs the
+full detailed analysis. When it expands to multiple cases, the script performs
+an internal sweep and prints one summary line per case.
 """
 
 from __future__ import annotations
@@ -46,54 +51,94 @@ class GraphRecord:
     is_minimal: bool
 
 
+@dataclass(frozen=True)
+class AnalysisCase:
+    t: int
+    s_values: tuple[int, ...]
+    m: int
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
             "Compute summary data for circulant graphs on V={0,...,t-1}, "
             "indexed by nonzero 0-1 jump vectors over J={1,...,floor(t/2)} "
-            "(so total vectors = 2^|J|-1). Analyze the standard inequality by "
-            "default, or the lifted inequality with --lifted. "
-            "Use --latex to also emit a .tex/.pdf report."
+            "(so total vectors = 2^|J|-1). "
+            "Use scalars for a single case or min:max ranges for a sweep."
         )
     )
     parser.add_argument(
         "--t",
-        type=int,
+        type=str,
         required=True,
-        help="Number of vertices (t >= 2).",
+        help="Number of vertices t, as either an integer or an inclusive min:max range.",
     )
     parser.add_argument(
         "--S",
         type=str,
-        required=True,
+        default=None,
         help=(
             "Target vertex subset S (subset of V={0,...,t-1}). "
-            "Examples: '0,1,2', '{0,3,7}', '5'."
+            "Examples: '0,1,2', '{0,3,7}', '5'. "
+            "If omitted, use --S-size to sweep all subsets containing 0."
+        ),
+    )
+    parser.add_argument(
+        "--S-size",
+        "--|S|",
+        dest="s_size",
+        default=None,
+        help=(
+            "|S|, as either an integer or an inclusive min:max range. "
+            "Used only when --S is omitted; all subsets containing 0 are generated."
         ),
     )
     parser.add_argument(
         "--m",
-        type=int,
+        type=str,
         default=None,
-        help="Parameter m used in d_m(|S|). Default: |S|.",
+        help=(
+            "Parameter m used in d_m(|S|), as either an integer or an inclusive "
+            "min:max range. Default: |S| for each resolved S."
+        ),
     )
-    parser.add_argument(
+    lift_group = parser.add_mutually_exclusive_group()
+    lift_group.add_argument(
         "--lift",
         "--lifted",
-        dest="lift",
-        action="store_true",
+        dest="lift_mode",
+        action="store_const",
+        const="lifted",
         help=(
             "Analyze the lifted inequality with coefficients "
             "min(kappa(l,S), binom(|S|,2)-d_m(|S|)) instead of the standard one."
         ),
     )
+    lift_group.add_argument(
+        "--addlifted",
+        dest="lift_mode",
+        action="store_const",
+        const="addlifted",
+        help="Run the standard inequality first and then the lifted one.",
+    )
+    parser.set_defaults(lift_mode="standard")
     parser.add_argument(
         "--output",
         type=Path,
         default=None,
         help=(
-            "Output .tex file path (used only with --latex). "
-            "Default: S=<sorted S>_m=<m>_t=<t>[_lift].tex"
+            "Output .tex file path for a single resolved case (used only with --latex). "
+            "With --addlifted, this path is used for the standard run and a sibling "
+            "_lift file is used for the lifted run."
+        ),
+    )
+    parser.add_argument(
+        "--output-dir",
+        type=Path,
+        default=None,
+        help=(
+            "Directory for auto-named .tex files (used only with --latex). "
+            "Useful for sweeps; also works for single-case default naming."
         ),
     )
     parser.add_argument(
@@ -143,27 +188,118 @@ def parse_args() -> argparse.Namespace:
             "In this mode, Y, Y+, and rank use only the recipe-selected graphs."
         ),
     )
+    parser.add_argument(
+        "--stop-on-error",
+        action="store_true",
+        help="In multi-case mode, stop at the first failing case.",
+    )
     return parser.parse_args()
 
 
-def parse_vertex_set(raw: str, max_vertex: int) -> set[int]:
-    stripped = raw.strip()
-    if stripped in {"", "{}", "empty", "none", "None"}:
-        return set()
+def parse_int_or_closed_range(spec: str, arg_name: str) -> list[int]:
+    stripped = spec.strip()
+    if not stripped:
+        raise ValueError(f"{arg_name} requires an integer or min:max, got an empty value.")
+    if ":" not in stripped:
+        return [int(stripped)]
 
-    values = [int(x) for x in re.findall(r"\d+", stripped)]
+    parts = [part.strip() for part in stripped.split(":")]
+    if len(parts) != 2 or not parts[0] or not parts[1]:
+        raise ValueError(f"{arg_name} must be in 'min:max' format, got '{spec}'.")
+    start = int(parts[0])
+    end = int(parts[1])
+    if start > end:
+        raise ValueError(f"{arg_name} requires min <= max, got '{spec}'.")
+    return list(range(start, end + 1))
+
+
+def parse_explicit_s_values(raw: str) -> tuple[int, ...]:
+    values = [int(x) for x in re.findall(r"\d+", raw.strip())]
     if not values:
         raise ValueError(
             f"Could not parse S='{raw}'. Use integers like '0,1,2' or '{{0,3,7}}'."
         )
+    return tuple(sorted(set(values)))
 
-    vertex_set = set(values)
-    invalid = sorted(v for v in vertex_set if v < 0 or v > max_vertex)
+
+def validate_explicit_s_values(values: tuple[int, ...], t: int) -> None:
+    invalid = sorted(v for v in values if v < 0 or v >= t)
     if invalid:
         raise ValueError(
-            f"Invalid vertices in S: {invalid}. Allowed vertices are in 0..{max_vertex}."
+            f"Invalid vertices in S: {invalid}. Allowed vertices are in 0..{t - 1}."
         )
-    return vertex_set
+
+
+def build_s_containing_zero(t: int, s_size: int) -> list[tuple[int, ...]]:
+    if s_size < 1 or s_size > t:
+        return []
+    if s_size == 1:
+        return [(0,)]
+    return [(0,) + tail for tail in itertools.combinations(range(1, t), s_size - 1)]
+
+
+def resolve_analysis_cases(args: argparse.Namespace) -> list[AnalysisCase]:
+    t_values = parse_int_or_closed_range(args.t, "--t")
+    if any(t < 2 for t in t_values):
+        raise ValueError("t must be at least 2.")
+
+    if args.S is None and args.s_size is None:
+        raise ValueError("Provide either --S or --S-size.")
+
+    explicit_s_values = parse_explicit_s_values(args.S) if args.S is not None else None
+    if explicit_s_values is not None and len(t_values) == 1:
+        validate_explicit_s_values(explicit_s_values, t_values[0])
+
+    s_size_values: list[int] | None = None
+    if explicit_s_values is None:
+        assert args.s_size is not None
+        s_size_values = parse_int_or_closed_range(args.s_size, "--S-size")
+        if any(s_size < 1 for s_size in s_size_values):
+            raise ValueError("|S| must be at least 1.")
+
+    m_values = (
+        parse_int_or_closed_range(args.m, "--m")
+        if args.m is not None
+        else None
+    )
+
+    cases: list[AnalysisCase] = []
+    for t in t_values:
+        if explicit_s_values is not None:
+            try:
+                validate_explicit_s_values(explicit_s_values, t)
+            except ValueError:
+                continue
+            s_candidates = [explicit_s_values]
+        else:
+            assert s_size_values is not None
+            s_candidates = []
+            for s_size in s_size_values:
+                s_candidates.extend(build_s_containing_zero(t, s_size))
+
+        for s_values in s_candidates:
+            current_m_values = m_values if m_values is not None else [len(s_values)]
+            for m in current_m_values:
+                if m < 2 or m > len(s_values):
+                    continue
+                cases.append(AnalysisCase(t=t, s_values=s_values, m=m))
+
+    if cases:
+        return cases
+
+    if explicit_s_values is not None and len(t_values) == 1:
+        validate_explicit_s_values(explicit_s_values, t_values[0])
+        if m_values is not None and len(m_values) == 1 and m_values[0] < 2:
+            raise ValueError("m must be at least 2. If --m is omitted, this requires |S| >= 2.")
+        default_m = m_values[0] if m_values is not None and len(m_values) == 1 else len(explicit_s_values)
+        if default_m < 2:
+            raise ValueError("m must be at least 2. If --m is omitted, this requires |S| >= 2.")
+        if len(explicit_s_values) < default_m:
+            raise ValueError("|S| must be at least m so that d_m(|S|) is defined.")
+
+    raise SystemExit(
+        "No valid (t,S,m) combinations after filtering 0 <= S < t and 2 <= m <= |S|."
+    )
 
 
 def jump_distance(i: int, j: int, t: int) -> int:
@@ -695,6 +831,7 @@ def compute_summary(
     compute_sssp_exact: bool,
     use_recipe: bool,
     use_lift: bool,
+    show_progress: bool = True,
 ) -> dict:
     s_size = len(s_set)
     thm2 = thm2_value(s_size, m)
@@ -749,17 +886,18 @@ def compute_summary(
                 )
             )
 
-            current_status = status_line(
-                current=graph_idx,
-                total=total_y_vectors,
-                t=t,
-                m=m,
-                thm2=thm2,
-                s_sorted=s_sorted,
-                j_max=j_max,
-                n_check=graph_idx,
-            )
-            last_status_len = print_in_place(current_status, last_status_len)
+            if show_progress:
+                current_status = status_line(
+                    current=graph_idx,
+                    total=total_y_vectors,
+                    t=t,
+                    m=m,
+                    thm2=thm2,
+                    s_sorted=s_sorted,
+                    j_max=j_max,
+                    n_check=graph_idx,
+                )
+                last_status_len = print_in_place(current_status, last_status_len)
 
         selected_graphs = graph_data
     else:
@@ -787,17 +925,18 @@ def compute_summary(
                 )
             )
 
-            current_status = status_line(
-                current=graph_idx,
-                total=total_y_vectors,
-                t=t,
-                m=m,
-                thm2=thm2,
-                s_sorted=s_sorted,
-                j_max=j_max,
-                n_check=progress_check_count,
-            )
-            last_status_len = print_in_place(current_status, last_status_len)
+            if show_progress:
+                current_status = status_line(
+                    current=graph_idx,
+                    total=total_y_vectors,
+                    t=t,
+                    m=m,
+                    thm2=thm2,
+                    s_sorted=s_sorted,
+                    j_max=j_max,
+                    n_check=progress_check_count,
+                )
+                last_status_len = print_in_place(current_status, last_status_len)
 
         selected_graphs = [entry for entry in graph_data if entry.mark_ok]
 
@@ -835,11 +974,12 @@ def compute_summary(
         sssp=sssp,
         use_lift=use_lift,
     )
-    if total_y_vectors > 0:
-        print_in_place(final_status, last_status_len)
-    else:
-        print(final_status, end="")
-    print()
+    if show_progress:
+        if total_y_vectors > 0:
+            print_in_place(final_status, last_status_len)
+        else:
+            print(final_status, end="")
+        print()
 
     return {
         "t": t,
@@ -872,6 +1012,7 @@ def compute_summary(
         "y_plus_rank": y_plus_rank,
         "y_plus_multiplier": y_plus_multiplier,
         "status": facet_status(y_plus_rank, j_max),
+        "final_status_line": final_status,
     }
 
 
@@ -1199,7 +1340,7 @@ def build_document(summary: dict, cols: int, show_all_graphs: bool) -> str:
     return "\n".join(doc)
 
 
-def compile_tex(tex_path: Path) -> None:
+def compile_tex(tex_path: Path, verbose: bool = True) -> None:
     try:
         subprocess.run(
             [
@@ -1213,21 +1354,26 @@ def compile_tex(tex_path: Path) -> None:
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
         )
-        print(f"Compiled {tex_path.with_suffix('.pdf')}")
+        if verbose:
+            print(f"Compiled {tex_path.with_suffix('.pdf')}")
     except FileNotFoundError:
-        print("pdflatex not found; skipping compilation.")
+        if verbose:
+            print("pdflatex not found; skipping compilation.")
     except subprocess.CalledProcessError:
-        print(f"pdflatex failed for {tex_path.name}; check the .log file.")
+        if verbose:
+            print(f"pdflatex failed for {tex_path.name}; check the .log file.")
 
-def clean_latex_garbage(tex_path: Path) -> None:
+
+def clean_latex_garbage(tex_path: Path, verbose: bool = True) -> None:
     removed = 0
     for ext in (".log", ".aux"):
         file_path = tex_path.with_suffix(ext)
         if file_path.is_file():
             file_path.unlink()
             removed += 1
-    if removed > 0:
+    if removed > 0 and verbose:
         print(f"Latex garbage cleaned ({removed} files)")
+
 
 def normalize_output_path(path: Path) -> Path:
     if path.suffix == ".tex" and path.stem.endswith(".lex"):
@@ -1241,45 +1387,201 @@ def default_output_path(t: int, s_set: set[int], m: int, use_lift: bool) -> Path
     return Path(f"S={s_part}_m={m}_t={t}{suffix}.tex")
 
 
-def main() -> None:
-    args = parse_args()
-    if args.t < 2:
-        raise ValueError("t must be at least 2.")
-    if args.latex and args.cols < 1:
-        raise ValueError("--cols must be at least 1.")
+def append_stem_suffix(path: Path, suffix: str) -> Path:
+    if path.suffix:
+        return path.with_name(f"{path.stem}{suffix}{path.suffix}")
+    return path.with_name(path.name + suffix)
 
-    s_set = parse_vertex_set(args.S, args.t - 1)
-    m = args.m if args.m is not None else len(s_set)
-    if m < 2:
-        raise ValueError("m must be at least 2. If --m is omitted, this requires |S| >= 2.")
-    if len(s_set) < m:
-        raise ValueError("|S| must be at least m so that d_m(|S|) is defined.")
+
+def resolve_output_path(
+    args: argparse.Namespace,
+    case: AnalysisCase,
+    use_lift: bool,
+    multi_case: bool,
+) -> Path:
+    default_path = default_output_path(case.t, set(case.s_values), case.m, use_lift=use_lift)
+
+    if multi_case:
+        if args.output_dir is not None:
+            return normalize_output_path(args.output_dir / default_path.name)
+        return normalize_output_path(default_path)
+
+    if args.output is not None:
+        base_output = normalize_output_path(args.output)
+        if args.lift_mode == "addlifted" and use_lift:
+            return append_stem_suffix(base_output, "_lift")
+        return base_output
+
+    if args.output_dir is not None:
+        return normalize_output_path(args.output_dir / default_path.name)
+
+    return normalize_output_path(default_path)
+
+
+def write_latex_output(
+    summary: dict,
+    output: Path,
+    cols: int,
+    show_all_graphs: bool,
+    verbose: bool,
+) -> None:
+    tex = build_document(summary, cols, show_all_graphs)
+    output.write_text(tex, encoding="utf-8")
+    resolved_output = output.resolve()
+    if verbose:
+        print(f"Wrote {output}")
+    compile_tex(resolved_output, verbose=verbose)
+    clean_latex_garbage(resolved_output, verbose=verbose)
+
+
+def run_analysis_case(
+    case: AnalysisCase,
+    args: argparse.Namespace,
+    use_lift: bool,
+    show_progress: bool,
+    multi_case: bool,
+) -> dict:
     summary = compute_summary(
-        args.t,
-        m,
-        s_set,
+        case.t,
+        case.m,
+        set(case.s_values),
         use_fraction=args.fraction,
         compute_sssp_exact=args.sssp,
         use_recipe=args.recipe,
-        use_lift=args.lift,
+        use_lift=use_lift,
+        show_progress=show_progress,
     )
+    if args.latex:
+        output = resolve_output_path(args, case, use_lift=use_lift, multi_case=multi_case)
+        write_latex_output(
+            summary,
+            output,
+            cols=args.cols,
+            show_all_graphs=args.show_all_graphs,
+            verbose=show_progress,
+        )
+    return summary
+
+
+def case_error_line(case: AnalysisCase, use_lift: bool, exc: Exception) -> str:
+    mode = "lifted" if use_lift else "standard"
+    return (
+        f"t={case.t}, m={case.m}, S={plain_set(list(case.s_values))}, "
+        f"ineq={mode}, ERROR={exc}"
+    )
+
+
+def run_single_mode(case: AnalysisCase, args: argparse.Namespace) -> None:
+    if args.lift_mode == "addlifted":
+        run_analysis_case(case, args, use_lift=False, show_progress=True, multi_case=False)
+        run_analysis_case(case, args, use_lift=True, show_progress=True, multi_case=False)
+        return
+
+    run_analysis_case(
+        case,
+        args,
+        use_lift=args.lift_mode == "lifted",
+        show_progress=True,
+        multi_case=False,
+    )
+
+
+def run_multi_mode(cases: list[AnalysisCase], args: argparse.Namespace) -> int:
+    failures = 0
+
+    for case in cases:
+        if args.lift_mode == "addlifted":
+            standard_summary: dict | None = None
+            standard_line: str
+            lifted_line: str
+
+            try:
+                standard_summary = run_analysis_case(
+                    case,
+                    args,
+                    use_lift=False,
+                    show_progress=False,
+                    multi_case=True,
+                )
+                standard_line = standard_summary["final_status_line"]
+            except Exception as exc:
+                failures += 1
+                standard_line = case_error_line(case, use_lift=False, exc=exc)
+                if args.stop_on_error:
+                    raise
+
+            try:
+                lifted_summary = run_analysis_case(
+                    case,
+                    args,
+                    use_lift=True,
+                    show_progress=False,
+                    multi_case=True,
+                )
+                lifted_line = lifted_summary["final_status_line"]
+                if (
+                    standard_summary is not None
+                    and standard_summary["status"] != "FACET"
+                    and lifted_summary["status"] == "FACET"
+                ):
+                    lifted_line = replace_terminal_status(lifted_line, "FACET+")
+            except Exception as exc:
+                failures += 1
+                lifted_line = case_error_line(case, use_lift=True, exc=exc)
+                if args.stop_on_error:
+                    raise
+
+            print(standard_line)
+            print(lifted_line)
+            continue
+
+        use_lift = args.lift_mode == "lifted"
+        try:
+            summary = run_analysis_case(
+                case,
+                args,
+                use_lift=use_lift,
+                show_progress=False,
+                multi_case=True,
+            )
+            print(summary["final_status_line"])
+        except Exception as exc:
+            failures += 1
+            print(case_error_line(case, use_lift=use_lift, exc=exc))
+            if args.stop_on_error:
+                raise
+
+    return failures
+
+
+def main() -> None:
+    args = parse_args()
+    if args.latex and args.cols < 1:
+        raise ValueError("--cols must be at least 1.")
+
+    cases = resolve_analysis_cases(args)
+    multi_case = len(cases) > 1
 
     if not args.latex:
         if args.output is not None:
             print("Ignoring --output because --latex was not set.")
+        if args.output_dir is not None:
+            print("Ignoring --output-dir because --latex was not set.")
+    else:
+        if multi_case and args.output is not None:
+            raise ValueError(
+                "--output requires a single resolved (t,S,m) case; use --output-dir for sweeps."
+            )
+        if args.output_dir is not None:
+            args.output_dir.mkdir(parents=True, exist_ok=True)
+
+    if multi_case:
+        failures = run_multi_mode(cases, args)
+        if failures > 0:
+            raise SystemExit(1)
         return
 
-    output = (
-        args.output
-        if args.output is not None
-        else default_output_path(args.t, s_set, m, use_lift=args.lift)
-    )
-    output = normalize_output_path(output)
-    tex = build_document(summary, args.cols, args.show_all_graphs)
-    output.write_text(tex, encoding="utf-8")
-    print(f"Wrote {output}")
-    compile_tex(output.resolve())
-    clean_latex_garbage(output.resolve())
+    run_single_mode(cases[0], args)
 
 
 if __name__ == "__main__":
