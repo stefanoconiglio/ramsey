@@ -803,16 +803,20 @@ def final_status_line(
     rhs_value: int,
     sssp: str,
     use_lift: bool,
+    facet_label: str | None = None,
 ) -> str:
     coeffs_str = ",".join(str(value) for value in a_coeffs)
     uniformity = a_uniformity_status(a_coeffs)
     mode = "lifted" if use_lift else "standard"
+    terminal_status = facet_status(rank_y_plus, j_max)
+    if facet_label is not None and terminal_status == "FACET":
+        terminal_status = facet_label
     return (
         f"{current}/{total} "
         f"t={t}, m={m}, thm2={thm2}, S={plain_set(s_sorted)}, floor(t/2)={j_max}, "
         f"N={n_check}, rank(Y+)={rank_y_plus}, alldiff={alldiff}, d_m(|S|)={d_m_s}, rhs={rhs_value}, "
         f"a'y=({coeffs_str})'y, {uniformity}, SSSP={sssp}, ineq={mode}, "
-        f"{facet_status(rank_y_plus, j_max)}"
+        f"{terminal_status}"
     )
 
 
@@ -832,6 +836,7 @@ def compute_summary(
     use_recipe: bool,
     use_lift: bool,
     show_progress: bool = True,
+    facet_label: str | None = None,
 ) -> dict:
     s_size = len(s_set)
     thm2 = thm2_value(s_size, m)
@@ -973,6 +978,7 @@ def compute_summary(
         rhs_value=rhs_value,
         sssp=sssp,
         use_lift=use_lift,
+        facet_label=facet_label,
     )
     if show_progress:
         if total_y_vectors > 0:
@@ -1440,6 +1446,7 @@ def run_analysis_case(
     use_lift: bool,
     show_progress: bool,
     multi_case: bool,
+    facet_label: str | None = None,
 ) -> dict:
     summary = compute_summary(
         case.t,
@@ -1450,6 +1457,7 @@ def run_analysis_case(
         use_recipe=args.recipe,
         use_lift=use_lift,
         show_progress=show_progress,
+        facet_label=facet_label,
     )
     if args.latex:
         output = resolve_output_path(args, case, use_lift=use_lift, multi_case=multi_case)
@@ -1474,7 +1482,14 @@ def case_error_line(case: AnalysisCase, use_lift: bool, exc: Exception) -> str:
 def run_single_mode(case: AnalysisCase, args: argparse.Namespace) -> None:
     if args.lift_mode == "addlifted":
         run_analysis_case(case, args, use_lift=False, show_progress=True, multi_case=False)
-        run_analysis_case(case, args, use_lift=True, show_progress=True, multi_case=False)
+        run_analysis_case(
+            case,
+            args,
+            use_lift=True,
+            show_progress=True,
+            multi_case=False,
+            facet_label="FACET+",
+        )
         return
 
     run_analysis_case(
@@ -1517,14 +1532,9 @@ def run_multi_mode(cases: list[AnalysisCase], args: argparse.Namespace) -> int:
                     use_lift=True,
                     show_progress=False,
                     multi_case=True,
+                    facet_label="FACET+",
                 )
                 lifted_line = lifted_summary["final_status_line"]
-                if (
-                    standard_summary is not None
-                    and standard_summary["status"] != "FACET"
-                    and lifted_summary["status"] == "FACET"
-                ):
-                    lifted_line = replace_terminal_status(lifted_line, "FACET+")
             except Exception as exc:
                 failures += 1
                 lifted_line = case_error_line(case, use_lift=True, exc=exc)
