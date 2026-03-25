@@ -193,6 +193,11 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="In multi-case mode, stop at the first failing case.",
     )
+    parser.add_argument(
+        "--onlyalldiff1",
+        action="store_true",
+        help="Skip any case whose S does not satisfy alldiff=1.",
+    )
     return parser.parse_args()
 
 
@@ -264,6 +269,7 @@ def resolve_analysis_cases(args: argparse.Namespace) -> list[AnalysisCase]:
     )
 
     cases: list[AnalysisCase] = []
+    skipped_for_alldiff = 0
     for t in t_values:
         if explicit_s_values is not None:
             try:
@@ -278,6 +284,9 @@ def resolve_analysis_cases(args: argparse.Namespace) -> list[AnalysisCase]:
                 s_candidates.extend(build_s_containing_zero(t, s_size))
 
         for s_values in s_candidates:
+            if args.onlyalldiff1 and not has_all_distinct_s_jumps(t, s_values):
+                skipped_for_alldiff += 1
+                continue
             current_m_values = m_values if m_values is not None else [len(s_values)]
             for m in current_m_values:
                 if m < 2 or m > len(s_values):
@@ -297,6 +306,11 @@ def resolve_analysis_cases(args: argparse.Namespace) -> list[AnalysisCase]:
         if len(explicit_s_values) < default_m:
             raise ValueError("|S| must be at least m so that d_m(|S|) is defined.")
 
+    if args.onlyalldiff1 and skipped_for_alldiff > 0:
+        raise SystemExit(
+            "No valid (t,S,m) combinations remain after applying --onlyalldiff1."
+        )
+
     raise SystemExit(
         "No valid (t,S,m) combinations after filtering 0 <= S < t and 2 <= m <= |S|."
     )
@@ -304,6 +318,14 @@ def resolve_analysis_cases(args: argparse.Namespace) -> list[AnalysisCase]:
 
 def jump_distance(i: int, j: int, t: int) -> int:
     return min((i - j) % t, (j - i) % t)
+
+
+def has_all_distinct_s_jumps(t: int, s_values: tuple[int, ...]) -> bool:
+    jump_set = {
+        jump_distance(i, j, t)
+        for i, j in itertools.combinations(s_values, 2)
+    }
+    return len(jump_set) == math.comb(len(s_values), 2)
 
 
 def undirected_edges_from_jumps(t: int, jumps: set[int]) -> set[tuple[int, int]]:
@@ -634,11 +656,6 @@ def facet_status(rank_y_plus: int, j_max: int) -> str:
     return "FACET" if rank_y_plus == j_max else "FAILURE"
 
 
-def a_uniformity_status(a_coeffs: list[int]) -> str:
-    nonzero_values = {value for value in a_coeffs if value != 0}
-    return "UNIFORM" if len(nonzero_values) <= 1 else "DIFFERT"
-
-
 def thm2_value(s_size: int, m: int) -> int:
     return 1 if (s_size % (m - 1)) != 0 else 0
 
@@ -806,7 +823,7 @@ def final_status_line(
     facet_label: str | None = None,
 ) -> str:
     coeffs_str = ",".join(str(value) for value in a_coeffs)
-    uniformity = a_uniformity_status(a_coeffs)
+    max_lhs = sum(a_coeffs)
     mode = "lifted" if use_lift else "standard"
     terminal_status = facet_status(rank_y_plus, j_max)
     if facet_label is not None and terminal_status == "FACET":
@@ -815,7 +832,8 @@ def final_status_line(
         f"{current}/{total} "
         f"t={t}, m={m}, thm2={thm2}, S={plain_set(s_sorted)}, floor(t/2)={j_max}, "
         f"N={n_check}, rank(Y+)={rank_y_plus}, alldiff={alldiff}, d_m(|S|)={d_m_s}, rhs={rhs_value}, "
-        f"a'y=({coeffs_str})'y, {uniformity}, SSSP={sssp}, ineq={mode}, "
+        f"maxLHS={max_lhs}, "
+        f"a'y=({coeffs_str})'y, SSSP={sssp}, ineq={mode}, "
         f"{terminal_status}"
     )
 
