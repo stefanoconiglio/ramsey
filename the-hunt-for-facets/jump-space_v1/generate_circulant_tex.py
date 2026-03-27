@@ -182,10 +182,9 @@ def parse_args() -> argparse.Namespace:
         "--recipe",
         action="store_true",
         help=(
-            "Use direct recipe mode: build CORE graphs (all active jumps except one), "
-            "then add free jumps (a_j=0) only to the first CORE graph until the set "
-            "size reaches floor(t/2) or free jumps run out. "
-            "In this mode, Y, Y+, and rank use only the recipe-selected graphs."
+            "Use the proof recipe: build Y from all rhs-subsets of the active jumps "
+            "(where a_j=1), then extend with one free jump (a_j=0) at a time from "
+            "the first such subset. If the recipe does not apply, raise an error."
         ),
     )
     parser.add_argument(
@@ -741,48 +740,34 @@ def linear_form_value(
 def build_recipe_jump_sets(
     j_list: list[int],
     a_coeffs: list[int],
-    target_count: int,
+    rhs_value: int,
 ) -> list[set[int]]:
-    """Build recipe jump-sets: CORE + lifts of first CORE by free jumps."""
-    active_jumps = [jump for jump, coeff in zip(j_list, a_coeffs) if coeff > 0]
+    """Build the proof-recipe jump sets for 0/1 coefficient vectors."""
+    if any(coeff not in (0, 1) for coeff in a_coeffs):
+        raise ValueError(
+            "recipe requires a 0/1 coefficient vector (active jumps with a_j=1, free jumps with a_j=0)"
+        )
+
+    active_jumps = [jump for jump, coeff in zip(j_list, a_coeffs) if coeff == 1]
     free_jumps = [jump for jump, coeff in zip(j_list, a_coeffs) if coeff == 0]
+    active_count = len(active_jumps)
 
-    recipe_sets: list[set[int]] = []
-    seen: set[frozenset[int]] = set()
+    if active_count < 2 or rhs_value < 1 or rhs_value >= active_count:
+        raise ValueError(
+            f"recipe requires 1 <= rhs < number of active jumps and at least two active jumps; "
+            f"got rhs={rhs_value}, active_count={active_count}"
+        )
 
-    if not active_jumps:
-        return recipe_sets
+    base_sets = [set(combo) for combo in itertools.combinations(active_jumps, rhs_value)]
+    if not base_sets:
+        raise ValueError("recipe could not build any base rhs-subsets of the active jumps")
 
-    # CORE: for each active jump, take all active jumps except that one.
-    if len(active_jumps) >= 2:
-        full_active = set(active_jumps)
-        for omitted in active_jumps:
-            core_set = set(full_active)
-            core_set.discard(omitted)
-            frozen = frozenset(core_set)
-            if not core_set or frozen in seen:
-                continue
-            recipe_sets.append(core_set)
-            seen.add(frozen)
-    else:
-        core_set = {active_jumps[0]}
-        recipe_sets.append(core_set)
-        seen.add(frozenset(core_set))
-
-    if not recipe_sets:
-        return recipe_sets
-
-    # Add free jumps only to the first CORE graph until reaching target_count.
-    extra_needed = max(0, target_count - len(recipe_sets))
-    first_core = set(recipe_sets[0])
-    for free_jump in free_jumps[:extra_needed]:
-        lifted = set(first_core)
+    recipe_sets = list(base_sets)
+    first_base = set(base_sets[0])
+    for free_jump in free_jumps:
+        lifted = set(first_base)
         lifted.add(free_jump)
-        frozen = frozenset(lifted)
-        if frozen in seen:
-            continue
         recipe_sets.append(lifted)
-        seen.add(frozen)
 
     return recipe_sets
 
@@ -887,16 +872,26 @@ def compute_summary(
         recipe_subsets = build_recipe_jump_sets(
             j_list=j_list,
             a_coeffs=a_coeffs,
-            target_count=j_max,
+            rhs_value=rhs_value,
         )
+
+    if use_recipe:
         total_y_vectors = len(recipe_subsets)
+        progress_check_count = 0
 
         for graph_idx, jumps_l in enumerate(recipe_subsets, start=1):
             edges_l = undirected_edges_from_jumps(t, jumps_l)
             overlap_count = len(edges_l & s_edges)
             lhs_value = linear_form_value(a_coeffs, jumps_l, jump_to_idx)
             mark_ok = lhs_value == rhs_value
+            if not mark_ok:
+                raise ValueError(
+                    f"recipe produced a non-tight jump set {plain_set(sorted(jumps_l))}: "
+                    f"lhs={lhs_value}, rhs={rhs_value}"
+                )
             is_minimal = mark_ok and all(jump_overlap_count.get(jump, 0) > 0 for jump in jumps_l)
+            if mark_ok:
+                progress_check_count += 1
             graph_data.append(
                 GraphRecord(
                     idx=graph_idx,
@@ -918,7 +913,7 @@ def compute_summary(
                     thm2=thm2,
                     s_sorted=s_sorted,
                     j_max=j_max,
-                    n_check=graph_idx,
+                    n_check=progress_check_count,
                 )
                 last_status_len = print_in_place(current_status, last_status_len)
 
@@ -1304,10 +1299,10 @@ def build_document(summary: dict, cols: int, show_all_graphs: bool) -> str:
         )
     if use_recipe:
         doc.append(
-            r"Recipe mode: shown graphs are built directly as CORE graphs "
-            r"(all active jumps except one), plus graphs obtained by adding free jumps "
-            r"($a_j=0$) only to the first CORE graph. "
-            r"$Y$, $Y^{+}$, and rank are computed only from this shown set."
+            r"Recipe mode: let the active jumps be those with $a_j=1$ and the free jumps "
+            r"be those with $a_j=0$. We build $Y$ from all rhs-subsets of the active jumps, "
+            r"then add one free jump at a time to the first such subset to obtain the extra "
+            r"columns used for the rank witness."
         )
     doc.append(r"")
     
@@ -1489,34 +1484,90 @@ def run_analysis_case(
     return summary
 
 
-def case_error_line(case: AnalysisCase, use_lift: bool, exc: Exception) -> str:
+def case_error_line(
+    case: AnalysisCase,
+    use_lift: bool,
+    compute_sssp_exact: bool,
+) -> str:
+    s_set = set(case.s_values)
+    s_size = len(s_set)
+    thm2 = thm2_value(s_size, case.m)
+    d_m_s = turan_bound(s_size, case.m)
+    j_max = case.t // 2
+    j_list = list(range(1, j_max + 1))
+    s_edges = edges_from_vertex_subset(s_set)
+    s_jump_set = {jump_distance(i, j, case.t) for i, j in s_edges}
+    alldiff = 1 if len(s_jump_set) == len(s_edges) else 0
+    jump_to_idx = {jump: idx for idx, jump in enumerate(j_list)}
+    raw_coeffs = [0 for _ in j_list]
+    for i, j in s_edges:
+        jump = jump_distance(i, j, case.t)
+        raw_coeffs[jump_to_idx[jump]] += 1
+
+    inequality = build_inequality_data(
+        raw_coeffs=raw_coeffs,
+        s_size=s_size,
+        d_m_s=d_m_s,
+        use_lift=use_lift,
+    )
+    a_coeffs = inequality.coeffs
+    rhs_value = inequality.rhs
+    sssp = sssp_value(a_coeffs, rhs_value, compute_sssp_exact)
+    coeffs_str = ",".join(str(value) for value in a_coeffs)
+    max_lhs = sum(a_coeffs)
     mode = "lifted" if use_lift else "standard"
     return (
-        f"t={case.t}, m={case.m}, S={plain_set(list(case.s_values))}, "
-        f"ineq={mode}, ERROR={exc}"
+        f"-/- "
+        f"t={case.t}, m={case.m}, thm2={thm2}, S={plain_set(list(case.s_values))}, floor(t/2)={j_max}, "
+        f"N=-, rank(Y+)=-, alldiff={alldiff}, d_m(|S|)={d_m_s}, rhs={rhs_value}, "
+        f"maxLHS={max_lhs}, a'y=({coeffs_str})'y, SSSP={sssp}, ineq={mode}, ERROR"
     )
 
 
 def run_single_mode(case: AnalysisCase, args: argparse.Namespace) -> None:
     if args.lift_mode == "addlifted":
-        run_analysis_case(case, args, use_lift=False, show_progress=True, multi_case=False)
+        failures = 0
+        try:
+            run_analysis_case(case, args, use_lift=False, show_progress=True, multi_case=False)
+        except Exception:
+            failures += 1
+            print(case_error_line(case, use_lift=False, compute_sssp_exact=args.sssp))
+            if args.stop_on_error:
+                raise
+
+        try:
+            run_analysis_case(
+                case,
+                args,
+                use_lift=True,
+                show_progress=True,
+                multi_case=False,
+                facet_label="FACET+",
+            )
+        except Exception:
+            failures += 1
+            print(case_error_line(case, use_lift=True, compute_sssp_exact=args.sssp))
+            if args.stop_on_error:
+                raise
+
+        if failures > 0:
+            raise SystemExit(1)
+        return
+
+    use_lift = args.lift_mode == "lifted"
+    try:
         run_analysis_case(
             case,
             args,
-            use_lift=True,
+            use_lift=use_lift,
             show_progress=True,
             multi_case=False,
-            facet_label="FACET+",
         )
-        return
-
-    run_analysis_case(
-        case,
-        args,
-        use_lift=args.lift_mode == "lifted",
-        show_progress=True,
-        multi_case=False,
-    )
+    except Exception:
+        print(case_error_line(case, use_lift=use_lift, compute_sssp_exact=args.sssp))
+        if args.stop_on_error:
+            raise
+        raise SystemExit(1)
 
 
 def run_multi_mode(cases: list[AnalysisCase], args: argparse.Namespace) -> int:
@@ -1539,7 +1590,11 @@ def run_multi_mode(cases: list[AnalysisCase], args: argparse.Namespace) -> int:
                 standard_line = standard_summary["final_status_line"]
             except Exception as exc:
                 failures += 1
-                standard_line = case_error_line(case, use_lift=False, exc=exc)
+                standard_line = case_error_line(
+                    case,
+                    use_lift=False,
+                    compute_sssp_exact=args.sssp,
+                )
                 if args.stop_on_error:
                     raise
 
@@ -1555,7 +1610,11 @@ def run_multi_mode(cases: list[AnalysisCase], args: argparse.Namespace) -> int:
                 lifted_line = lifted_summary["final_status_line"]
             except Exception as exc:
                 failures += 1
-                lifted_line = case_error_line(case, use_lift=True, exc=exc)
+                lifted_line = case_error_line(
+                    case,
+                    use_lift=True,
+                    compute_sssp_exact=args.sssp,
+                )
                 if args.stop_on_error:
                     raise
 
@@ -1575,7 +1634,13 @@ def run_multi_mode(cases: list[AnalysisCase], args: argparse.Namespace) -> int:
             print(summary["final_status_line"])
         except Exception as exc:
             failures += 1
-            print(case_error_line(case, use_lift=use_lift, exc=exc))
+            print(
+                case_error_line(
+                    case,
+                    use_lift=use_lift,
+                    compute_sssp_exact=args.sssp,
+                )
+            )
             if args.stop_on_error:
                 raise
 
