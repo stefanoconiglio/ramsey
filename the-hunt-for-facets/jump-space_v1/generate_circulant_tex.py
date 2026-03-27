@@ -170,15 +170,6 @@ def parse_args() -> argparse.Namespace:
         ),
     )
     parser.add_argument(
-        "--sssp",
-        action="store_true",
-        help=(
-            "Compute exact SSSP via binary subset-sum feasibility check "
-            "(whether there exists y in {0,1}^|J| with a'y=rhs). "
-            "Without this flag, only fast necessary checks are used."
-        ),
-    )
-    parser.add_argument(
         "--recipe",
         action="store_true",
         help=(
@@ -682,7 +673,7 @@ def subset_sum_binary_feasible(coeffs: list[int], target: int) -> bool:
     return ((reachable >> target) & 1) == 1
 
 
-def sssp_value(a_coeffs: list[int], rhs_value: int, compute_exact: bool) -> str:
+def sssp_value(a_coeffs: list[int], rhs_value: int) -> str:
     nonzero_values = [value for value in a_coeffs if value != 0]
 
     # Fast check 1: only one nonzero coefficient with parity mismatch (and rhs > 0) => impossible.
@@ -694,9 +685,6 @@ def sssp_value(a_coeffs: list[int], rhs_value: int, compute_exact: bool) -> str:
     # Fast check 2: all coefficients even and rhs odd => impossible.
     if all(value % 2 == 0 for value in a_coeffs) and (rhs_value % 2 == 1):
         return "0"
-
-    if not compute_exact:
-        return "-"
 
     return "1" if subset_sum_binary_feasible(a_coeffs, rhs_value) else "0"
 
@@ -835,7 +823,6 @@ def compute_summary(
     m: int,
     s_set: set[int],
     use_fraction: bool,
-    compute_sssp_exact: bool,
     use_recipe: bool,
     use_lift: bool,
     show_progress: bool = True,
@@ -865,18 +852,75 @@ def compute_summary(
     a_coeffs = inequality.coeffs
     rhs_value = inequality.rhs
     jump_overlap_count = {jump: a_coeffs[idx] for idx, jump in enumerate(j_list)}
-    sssp = sssp_value(a_coeffs, rhs_value, compute_sssp_exact)
-    graph_data: list[GraphRecord] = []
-    last_status_len = 0
     if use_recipe:
         recipe_subsets = build_recipe_jump_sets(
             j_list=j_list,
             a_coeffs=a_coeffs,
             rhs_value=rhs_value,
         )
+        total_y_vectors = len(recipe_subsets)
+    else:
+        total_y_vectors = (1 << len(j_list)) - 1
+
+    sssp = sssp_value(a_coeffs, rhs_value)
+    graph_data: list[GraphRecord] = []
+    last_status_len = 0
+    if sssp == "0":
+        final_status = final_status_line(
+            current=0,
+            total=total_y_vectors,
+            t=t,
+            m=m,
+            thm2=thm2,
+            s_sorted=s_sorted,
+            j_max=j_max,
+            n_check=0,
+            rank_y_plus=0,
+            alldiff=alldiff,
+            a_coeffs=a_coeffs,
+            d_m_s=d_m_s,
+            rhs_value=rhs_value,
+            sssp=sssp,
+            use_lift=use_lift,
+            facet_label=facet_label,
+        )
+        if show_progress:
+            print(final_status)
+        return {
+            "t": t,
+            "m": m,
+            "thm2": thm2,
+            "d_m_s": d_m_s,
+            "rhs_value": rhs_value,
+            "sssp": sssp,
+            "s_size": s_size,
+            "alldiff": alldiff,
+            "a_coeffs": a_coeffs,
+            "raw_coeffs": raw_coeffs,
+            "pair_count": inequality.pair_count,
+            "lift_cap": inequality.lift_cap,
+            "s_sorted": s_sorted,
+            "s_jump_set": s_jump_set,
+            "j_max": j_max,
+            "j_list": j_list,
+            "total_y_vectors": total_y_vectors,
+            "graph_data": [],
+            "selected_graph_data": [],
+            "use_recipe": use_recipe,
+            "use_lift": use_lift,
+            "check_count": 0,
+            "check_indices": [],
+            "check_y_columns": [],
+            "y_rows": [],
+            "y_plus_columns": [],
+            "y_plus_rows": [],
+            "y_plus_rank": 0,
+            "y_plus_multiplier": None,
+            "status": "FAILURE",
+            "final_status_line": final_status,
+        }
 
     if use_recipe:
-        total_y_vectors = len(recipe_subsets)
         progress_check_count = 0
 
         for graph_idx, jumps_l in enumerate(recipe_subsets, start=1):
@@ -920,7 +964,6 @@ def compute_summary(
         selected_graphs = graph_data
     else:
         subsets = all_nonempty_jump_sets(j_list)
-        total_y_vectors = len(subsets)
         progress_check_count = 0
 
         for graph_idx, jumps_l in enumerate(subsets, start=1):
@@ -1466,7 +1509,6 @@ def run_analysis_case(
         case.m,
         set(case.s_values),
         use_fraction=args.fraction,
-        compute_sssp_exact=args.sssp,
         use_recipe=args.recipe,
         use_lift=use_lift,
         show_progress=show_progress,
@@ -1487,7 +1529,6 @@ def run_analysis_case(
 def case_error_line(
     case: AnalysisCase,
     use_lift: bool,
-    compute_sssp_exact: bool,
 ) -> str:
     s_set = set(case.s_values)
     s_size = len(s_set)
@@ -1512,7 +1553,7 @@ def case_error_line(
     )
     a_coeffs = inequality.coeffs
     rhs_value = inequality.rhs
-    sssp = sssp_value(a_coeffs, rhs_value, compute_sssp_exact)
+    sssp = sssp_value(a_coeffs, rhs_value)
     coeffs_str = ",".join(str(value) for value in a_coeffs)
     max_lhs = sum(a_coeffs)
     mode = "lifted" if use_lift else "standard"
@@ -1531,7 +1572,7 @@ def run_single_mode(case: AnalysisCase, args: argparse.Namespace) -> None:
             run_analysis_case(case, args, use_lift=False, show_progress=True, multi_case=False)
         except Exception:
             failures += 1
-            print(case_error_line(case, use_lift=False, compute_sssp_exact=args.sssp))
+            print(case_error_line(case, use_lift=False))
             if args.stop_on_error:
                 raise
 
@@ -1546,7 +1587,7 @@ def run_single_mode(case: AnalysisCase, args: argparse.Namespace) -> None:
             )
         except Exception:
             failures += 1
-            print(case_error_line(case, use_lift=True, compute_sssp_exact=args.sssp))
+            print(case_error_line(case, use_lift=True))
             if args.stop_on_error:
                 raise
 
@@ -1564,7 +1605,7 @@ def run_single_mode(case: AnalysisCase, args: argparse.Namespace) -> None:
             multi_case=False,
         )
     except Exception:
-        print(case_error_line(case, use_lift=use_lift, compute_sssp_exact=args.sssp))
+        print(case_error_line(case, use_lift=use_lift))
         if args.stop_on_error:
             raise
         raise SystemExit(1)
@@ -1593,7 +1634,6 @@ def run_multi_mode(cases: list[AnalysisCase], args: argparse.Namespace) -> int:
                 standard_line = case_error_line(
                     case,
                     use_lift=False,
-                    compute_sssp_exact=args.sssp,
                 )
                 if args.stop_on_error:
                     raise
@@ -1613,7 +1653,6 @@ def run_multi_mode(cases: list[AnalysisCase], args: argparse.Namespace) -> int:
                 lifted_line = case_error_line(
                     case,
                     use_lift=True,
-                    compute_sssp_exact=args.sssp,
                 )
                 if args.stop_on_error:
                     raise
@@ -1638,7 +1677,6 @@ def run_multi_mode(cases: list[AnalysisCase], args: argparse.Namespace) -> int:
                 case_error_line(
                     case,
                     use_lift=use_lift,
-                    compute_sssp_exact=args.sssp,
                 )
             )
             if args.stop_on_error:
