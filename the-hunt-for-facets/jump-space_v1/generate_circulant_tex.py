@@ -44,11 +44,11 @@ class InequalityData:
 class GraphRecord:
     idx: int
     jumps_l: set[int]
-    edges_l: set[tuple[int, int]]
     lhs_value: int
     overlap_count: int
     mark_ok: bool
     is_minimal: bool
+    is_feasible: bool
 
 
 @dataclass(frozen=True)
@@ -167,6 +167,15 @@ def parse_args() -> argparse.Namespace:
         help=(
             "Use exact Fraction arithmetic for rank/nullspace computations. "
             "Without this flag, computations use float64 for speed."
+        ),
+    )
+    parser.add_argument(
+        "--relax",
+        dest="relaxation",
+        action="store_true",
+        help=(
+            "Use the relaxed jump-vector model: do not enforce clique-feasibility "
+            "of enumerated graphs. Relaxed facet labels are marked with (REL)."
         ),
     )
     parser.add_argument(
@@ -338,6 +347,95 @@ def all_nonempty_jump_sets(j_list: list[int]) -> list[set[int]]:
         for combo in itertools.combinations(j_list, size):
             subsets.append(set(combo))
     return subsets
+
+
+def adjacency_masks_from_jumps(t: int, jumps: set[int]) -> list[int]:
+    masks = [0 for _ in range(t)]
+    for vertex in range(t):
+        mask = 0
+        for jump in jumps:
+            plus = (vertex + jump) % t
+            minus = (vertex - jump) % t
+            if plus != vertex:
+                mask |= 1 << plus
+            if minus != vertex:
+                mask |= 1 << minus
+        masks[vertex] = mask
+    return masks
+
+
+def greedy_coloring_order(adj_masks: list[int], candidate_mask: int) -> tuple[list[int], list[int]]:
+    order: list[int] = []
+    color_bounds: list[int] = []
+    uncolored = candidate_mask
+    color = 0
+
+    while uncolored:
+        color += 1
+        color_class = uncolored
+        while color_class:
+            vertex_bit = color_class & -color_class
+            vertex = vertex_bit.bit_length() - 1
+            order.append(vertex)
+            color_bounds.append(color)
+            uncolored &= ~vertex_bit
+            color_class &= ~vertex_bit
+            color_class &= ~adj_masks[vertex]
+
+    return order, color_bounds
+
+
+def has_clique_of_size(
+    adj_masks: list[int],
+    candidate_mask: int,
+    target_size: int,
+) -> bool:
+    if target_size <= 0:
+        return True
+    if candidate_mask.bit_count() < target_size:
+        return False
+
+    def search(vertices: list[int], color_bounds: list[int], chosen_size: int) -> bool:
+        local_vertices = list(vertices)
+        local_bounds = list(color_bounds)
+
+        while local_vertices:
+            if chosen_size + local_bounds[-1] < target_size:
+                return False
+
+            vertex = local_vertices.pop()
+            local_bounds.pop()
+            if chosen_size + 1 >= target_size:
+                return True
+
+            next_mask = 0
+            for other in local_vertices:
+                if (adj_masks[vertex] >> other) & 1:
+                    next_mask |= 1 << other
+
+            if next_mask.bit_count() < target_size - chosen_size - 1:
+                continue
+
+            next_vertices, next_bounds = greedy_coloring_order(adj_masks, next_mask)
+            if search(next_vertices, next_bounds, chosen_size + 1):
+                return True
+
+        return False
+
+    vertices, color_bounds = greedy_coloring_order(adj_masks, candidate_mask)
+    return search(vertices, color_bounds, 0)
+
+
+def is_m_clique_free(t: int, jumps: set[int], m: int) -> bool:
+    if m <= 1:
+        return False
+    if m > t:
+        return True
+    if not jumps:
+        return True
+
+    adj_masks = adjacency_masks_from_jumps(t, jumps)
+    return not has_clique_of_size(adj_masks, adj_masks[0], m - 1)
 
 
 def latex_set(values: list[int]) -> str:
@@ -646,6 +744,22 @@ def facet_status(rank_y_plus: int, j_max: int) -> str:
     return "FACET" if rank_y_plus == j_max else "FAILURE"
 
 
+def terminal_status_label(
+    rank_y_plus: int,
+    j_max: int,
+    use_relaxation: bool,
+    facet_label: str | None = None,
+) -> str:
+    terminal_status = facet_status(rank_y_plus, j_max)
+    if facet_label is not None and terminal_status == "FACET":
+        terminal_status = facet_label
+    if use_relaxation:
+        if terminal_status == "FAILURE":
+            return "FAILURE"
+        return terminal_status.replace("FACET", "FACET(REL)", 1)
+    return terminal_status
+
+
 def thm2_value(s_size: int, m: int) -> int:
     return 1 if (s_size % (m - 1)) != 0 else 0
 
@@ -793,14 +907,18 @@ def final_status_line(
     rhs_value: int,
     sssp: str,
     use_lift: bool,
+    use_relaxation: bool,
     facet_label: str | None = None,
 ) -> str:
     coeffs_str = ",".join(str(value) for value in a_coeffs)
     max_lhs = sum(a_coeffs)
     mode = "lifted" if use_lift else "standard"
-    terminal_status = facet_status(rank_y_plus, j_max)
-    if facet_label is not None and terminal_status == "FACET":
-        terminal_status = facet_label
+    terminal_status = terminal_status_label(
+        rank_y_plus=rank_y_plus,
+        j_max=j_max,
+        use_relaxation=use_relaxation,
+        facet_label=facet_label,
+    )
     return (
         f"{current}/{total} "
         f"t={t}, m={m}, thm2={thm2}, S={plain_set(s_sorted)}, floor(t/2)={j_max}, "
@@ -824,6 +942,7 @@ def compute_summary(
     s_set: set[int],
     use_fraction: bool,
     use_recipe: bool,
+    use_relaxation: bool,
     use_lift: bool,
     show_progress: bool = True,
     facet_label: str | None = None,
@@ -882,6 +1001,7 @@ def compute_summary(
             rhs_value=rhs_value,
             sssp=sssp,
             use_lift=use_lift,
+            use_relaxation=use_relaxation,
             facet_label=facet_label,
         )
         if show_progress:
@@ -907,6 +1027,7 @@ def compute_summary(
             "graph_data": [],
             "selected_graph_data": [],
             "use_recipe": use_recipe,
+            "use_relaxation": use_relaxation,
             "use_lift": use_lift,
             "check_count": 0,
             "check_indices": [],
@@ -916,7 +1037,7 @@ def compute_summary(
             "y_plus_rows": [],
             "y_plus_rank": 0,
             "y_plus_multiplier": None,
-            "status": "FAILURE",
+            "status": terminal_status_label(0, j_max, use_relaxation, facet_label=facet_label),
             "final_status_line": final_status,
         }
 
@@ -924,8 +1045,7 @@ def compute_summary(
         progress_check_count = 0
 
         for graph_idx, jumps_l in enumerate(recipe_subsets, start=1):
-            edges_l = undirected_edges_from_jumps(t, jumps_l)
-            overlap_count = len(edges_l & s_edges)
+            overlap_count = linear_form_value(raw_coeffs, jumps_l, jump_to_idx)
             lhs_value = linear_form_value(a_coeffs, jumps_l, jump_to_idx)
             mark_ok = lhs_value == rhs_value
             if not mark_ok:
@@ -933,18 +1053,23 @@ def compute_summary(
                     f"recipe produced a non-tight jump set {plain_set(sorted(jumps_l))}: "
                     f"lhs={lhs_value}, rhs={rhs_value}"
                 )
+            is_feasible = True if use_relaxation else is_m_clique_free(t, jumps_l, m)
+            if not use_relaxation and not is_feasible:
+                raise ValueError(
+                    f"recipe produced an infeasible jump set {plain_set(sorted(jumps_l))}"
+                )
             is_minimal = mark_ok and all(jump_overlap_count.get(jump, 0) > 0 for jump in jumps_l)
-            if mark_ok:
+            if mark_ok and is_feasible:
                 progress_check_count += 1
             graph_data.append(
                 GraphRecord(
                     idx=graph_idx,
                     jumps_l=jumps_l,
-                    edges_l=edges_l,
                     lhs_value=lhs_value,
                     overlap_count=overlap_count,
                     mark_ok=mark_ok,
                     is_minimal=is_minimal,
+                    is_feasible=is_feasible,
                 )
             )
 
@@ -967,22 +1092,22 @@ def compute_summary(
         progress_check_count = 0
 
         for graph_idx, jumps_l in enumerate(subsets, start=1):
-            edges_l = undirected_edges_from_jumps(t, jumps_l)
-            overlap_count = len(edges_l & s_edges)
+            overlap_count = linear_form_value(raw_coeffs, jumps_l, jump_to_idx)
             lhs_value = linear_form_value(a_coeffs, jumps_l, jump_to_idx)
             mark_ok = lhs_value == rhs_value
+            is_feasible = True if use_relaxation else is_m_clique_free(t, jumps_l, m)
             is_minimal = mark_ok and all(jump_overlap_count.get(jump, 0) > 0 for jump in jumps_l)
-            if mark_ok:
+            if mark_ok and is_feasible:
                 progress_check_count += 1
             graph_data.append(
                 GraphRecord(
                     idx=graph_idx,
                     jumps_l=jumps_l,
-                    edges_l=edges_l,
                     lhs_value=lhs_value,
                     overlap_count=overlap_count,
                     mark_ok=mark_ok,
                     is_minimal=is_minimal,
+                    is_feasible=is_feasible,
                 )
             )
 
@@ -999,7 +1124,12 @@ def compute_summary(
                 )
                 last_status_len = print_in_place(current_status, last_status_len)
 
-        selected_graphs = [entry for entry in graph_data if entry.mark_ok]
+        if use_relaxation:
+            selected_graphs = [entry for entry in graph_data if entry.mark_ok]
+        else:
+            selected_graphs = [
+                entry for entry in graph_data if entry.mark_ok and entry.is_feasible
+            ]
 
     check_indices = [entry.idx for entry in selected_graphs]
     check_y_columns = [jump_y_vector(j_list, entry.jumps_l) for entry in selected_graphs]
@@ -1034,6 +1164,7 @@ def compute_summary(
         rhs_value=rhs_value,
         sssp=sssp,
         use_lift=use_lift,
+        use_relaxation=use_relaxation,
         facet_label=facet_label,
     )
     if show_progress:
@@ -1064,6 +1195,7 @@ def compute_summary(
         "graph_data": graph_data,
         "selected_graph_data": selected_graphs,
         "use_recipe": use_recipe,
+        "use_relaxation": use_relaxation,
         "use_lift": use_lift,
         "check_count": check_count,
         "check_indices": check_indices,
@@ -1073,7 +1205,12 @@ def compute_summary(
         "y_plus_rows": y_plus_rows,
         "y_plus_rank": y_plus_rank,
         "y_plus_multiplier": y_plus_multiplier,
-        "status": facet_status(y_plus_rank, j_max),
+        "status": terminal_status_label(
+            y_plus_rank,
+            j_max,
+            use_relaxation,
+            facet_label=facet_label,
+        ),
         "final_status_line": final_status,
     }
 
@@ -1169,11 +1306,12 @@ def graph_cell_tex(
     s_jump_set: set[int],
     j_list: list[int],
     jumps_l: set[int],
-    edges_l: set[tuple[int, int]],
     lhs_value: int,
     overlap_with_s: int,
     mark_ok: bool,
     is_minimal: bool,
+    is_feasible: bool,
+    use_relaxation: bool,
     use_lift: bool,
     width: str = "0.31\\textwidth",
 ) -> str:
@@ -1181,6 +1319,7 @@ def graph_cell_tex(
     l_sorted = sorted(jumps_l)
     l_colored = latex_set_highlight(l_sorted, s_jump_set)
     y_vector_colored = latex_y_vector_highlight(j_list, jumps_l, s_jump_set)
+    edges_l = undirected_edges_from_jumps(t, jumps_l)
 
     lines: list[str] = []
     lines.append(rf"\begin{{minipage}}[t]{{{width}}}")
@@ -1217,6 +1356,8 @@ def graph_cell_tex(
     )
     if mark_ok and is_minimal:
         mark_symbol += r"\;\textbf{MIN}"
+    if not use_relaxation and not is_feasible:
+        mark_symbol += r"\;\textcolor{red}{\textbf{INFEASIBLE}}"
     if use_lift:
         lines.append(rf"\par $a^\top y={lhs_value}\;\;{mark_symbol}$")
         lines.append(rf"\par $|E(L)\cap E(S)|={overlap_with_s}$")
@@ -1243,6 +1384,7 @@ def build_document(summary: dict, cols: int, show_all_graphs: bool) -> str:
     graph_data = summary["graph_data"]
     selected_graph_data = summary["selected_graph_data"]
     use_recipe = summary["use_recipe"]
+    use_relaxation = summary["use_relaxation"]
     use_lift = summary["use_lift"]
     check_count = summary["check_count"]
     check_indices = summary["check_indices"]
@@ -1253,14 +1395,13 @@ def build_document(summary: dict, cols: int, show_all_graphs: bool) -> str:
     status = summary["status"]
     s_set = set(s_sorted)
 
-    if use_recipe:
-        display_graphs = selected_graph_data
-    elif show_all_graphs:
+    if show_all_graphs:
         display_graphs = graph_data
     else:
         display_graphs = [entry for entry in graph_data if entry.mark_ok]
     max_matrix_cols = max(10, len(check_y_columns), len(y_plus_columns))
     mode_label = "lifted" if use_lift else "standard"
+    feasibility_label = "relax" if use_relaxation else "strict"
 
     doc: list[str] = []
     doc.append(r"\documentclass[11pt]{article}")
@@ -1273,12 +1414,13 @@ def build_document(summary: dict, cols: int, show_all_graphs: bool) -> str:
     doc.append(r"\pagestyle{empty}")
     doc.append(r"")
     doc.append(r"\begin{document}")
-    doc.append(rf"\section*{{$S={latex_set(s_sorted)}$, $m={m}$, $t={t}$}}")
+    doc.append(
+        rf"\section*{{$S={latex_set(s_sorted)}$, $m={m}$, $t={t}$, "
+        rf"$\left\lfloor t/2\right\rfloor={j_max}$}}"
+    )
     doc.append(r"\begin{center}")
     doc.append(rf"$\mathbf{{{status}}}$")
     doc.append(r"\end{center}")
-    doc.append(rf"$\left\lfloor t/2\right\rfloor={j_max}$")
-    doc.append(r"\quad\quad")
     doc.append(rf"$J={latex_set(j_list)}$")
     doc.append(r"\quad\quad")
     doc.append(rf"$N={check_count}$")
@@ -1286,6 +1428,8 @@ def build_document(summary: dict, cols: int, show_all_graphs: bool) -> str:
     doc.append(rf"$\operatorname{{rank}}(Y^{{+}})={y_plus_rank}$")
     doc.append(r"\quad\quad")
     doc.append(rf"$\text{{mode}}=\text{{{mode_label}}}$")
+    doc.append(r"\quad\quad")
+    doc.append(rf"$\text{{feasibility}}=\text{{{feasibility_label}}}$")
     doc.append(r"\quad\quad")
     doc.append(rf"$\text{{rhs}}={rhs_value}$")
     doc.append(r"")
@@ -1334,11 +1478,17 @@ def build_document(summary: dict, cols: int, show_all_graphs: bool) -> str:
         r"When a checked graph is minimal under single-jump deletion, we append "
         r"$\textbf{MIN}$ right after the checkmark."
     )
+    if not use_relaxation:
+        doc.append(
+            r"In strict mode, a graph is feasible iff it is $K_m$-free. "
+            r"Any displayed infeasible graph is explicitly marked "
+            r"$\textcolor{red}{\textbf{INFEASIBLE}}$."
+        )
     if show_all_graphs:
         doc.append(r"All non-empty jump sets are shown.")
     else:
         doc.append(
-            r"Only graphs that pass the check are shown. "
+            r"Only graphs that satisfy the inequality at equality are shown. "
         )
     if use_recipe:
         doc.append(
@@ -1365,11 +1515,12 @@ def build_document(summary: dict, cols: int, show_all_graphs: bool) -> str:
                         s_jump_set=s_jump_set,
                         j_list=j_list,
                         jumps_l=entry.jumps_l,
-                        edges_l=entry.edges_l,
                         lhs_value=entry.lhs_value,
                         overlap_with_s=entry.overlap_count,
                         mark_ok=entry.mark_ok,
                         is_minimal=entry.is_minimal,
+                        is_feasible=entry.is_feasible,
+                        use_relaxation=use_relaxation,
                         use_lift=use_lift,
                     )
                 )
@@ -1443,9 +1594,17 @@ def normalize_output_path(path: Path) -> Path:
     return path
 
 
-def default_output_path(t: int, s_set: set[int], m: int, use_lift: bool) -> Path:
+def default_output_path(
+    t: int,
+    s_set: set[int],
+    m: int,
+    use_lift: bool,
+    use_relaxation: bool,
+) -> Path:
     s_part = ",".join(str(v) for v in sorted(s_set)) if s_set else "empty"
-    suffix = "_lift" if use_lift else ""
+    suffix = "_relax" if use_relaxation else ""
+    if use_lift:
+        suffix += "_lift"
     return Path(f"S={s_part}_m={m}_t={t}{suffix}.tex")
 
 
@@ -1461,7 +1620,13 @@ def resolve_output_path(
     use_lift: bool,
     multi_case: bool,
 ) -> Path:
-    default_path = default_output_path(case.t, set(case.s_values), case.m, use_lift=use_lift)
+    default_path = default_output_path(
+        case.t,
+        set(case.s_values),
+        case.m,
+        use_lift=use_lift,
+        use_relaxation=args.relaxation,
+    )
 
     if multi_case:
         if args.output_dir is not None:
@@ -1470,6 +1635,8 @@ def resolve_output_path(
 
     if args.output is not None:
         base_output = normalize_output_path(args.output)
+        if args.relaxation:
+            base_output = append_stem_suffix(base_output, "_relax")
         if args.lift_mode == "addlifted" and use_lift:
             return append_stem_suffix(base_output, "_lift")
         return base_output
@@ -1510,6 +1677,7 @@ def run_analysis_case(
         set(case.s_values),
         use_fraction=args.fraction,
         use_recipe=args.recipe,
+        use_relaxation=args.relaxation,
         use_lift=use_lift,
         show_progress=show_progress,
         facet_label=facet_label,
