@@ -15,8 +15,10 @@ an internal sweep and prints one summary line per case.
 from __future__ import annotations
 
 import argparse
+import csv
 from dataclasses import dataclass
 from fractions import Fraction
+import io
 import itertools
 import math
 import os
@@ -56,6 +58,10 @@ class AnalysisCase:
     t: int
     s_values: tuple[int, ...]
     m: int
+
+
+class SkipAnalysis(Exception):
+    pass
 
 
 LATEX_GRAPH_COLS = 3
@@ -117,11 +123,12 @@ def parse_args() -> argparse.Namespace:
     parser.set_defaults(lift_mode="standard")
     parser.add_argument(
         "--output-dir",
+        "--output_dir",
         type=Path,
         default=None,
         help=(
-            "Directory for auto-named .tex files (used only with --latex). "
-            "Defaults to ./output when --latex is enabled."
+            "Directory for auto-named output files. Defaults to ./output when "
+            "--latex or --csv is enabled."
         ),
     )
     parser.add_argument(
@@ -148,6 +155,11 @@ def parse_args() -> argparse.Namespace:
         "--table",
         action="store_true",
         help="Print stdout summaries as a table with one header row and value-only data rows.",
+    )
+    parser.add_argument(
+        "--csv",
+        action="store_true",
+        help="Write summaries to an auto-named CSV file with SQL-friendly header names.",
     )
     parser.add_argument(
         "--all",
@@ -186,9 +198,9 @@ def parse_args() -> argparse.Namespace:
         ),
     )
     parser.add_argument(
-        "--onlyalldiff1",
+        "--onlyuniform",
         action="store_true",
-        help="Skip any case whose S does not satisfy alldiff=1.",
+        help="Skip any standard/lifted analysis whose coefficient vector is not uniform.",
     )
     return parser.parse_args()
 
@@ -264,7 +276,6 @@ def resolve_analysis_cases(args: argparse.Namespace) -> list[AnalysisCase]:
     )
 
     cases: list[AnalysisCase] = []
-    skipped_for_alldiff = 0
     for t in t_values:
         if explicit_s_values is not None:
             try:
@@ -279,9 +290,6 @@ def resolve_analysis_cases(args: argparse.Namespace) -> list[AnalysisCase]:
                 s_candidates.extend(build_s_containing_zero(t, s_size))
 
         for s_values in s_candidates:
-            if args.onlyalldiff1 and not has_all_distinct_s_jumps(t, s_values):
-                skipped_for_alldiff += 1
-                continue
             current_m_values = m_values if m_values is not None else [len(s_values)]
             for m in current_m_values:
                 if m < 2 or m > len(s_values):
@@ -301,11 +309,6 @@ def resolve_analysis_cases(args: argparse.Namespace) -> list[AnalysisCase]:
         if len(explicit_s_values) < default_m:
             raise ValueError("|S| must be at least m so that d_m(|S|) is defined.")
 
-    if args.onlyalldiff1 and skipped_for_alldiff > 0:
-        raise SystemExit(
-            "No valid (t,S,m) combinations remain after applying --onlyalldiff1."
-        )
-
     raise SystemExit(
         "No valid (t,S,m) combinations after filtering 0 <= S < t and 2 <= m <= |S|."
     )
@@ -313,14 +316,6 @@ def resolve_analysis_cases(args: argparse.Namespace) -> list[AnalysisCase]:
 
 def jump_distance(i: int, j: int, t: int) -> int:
     return min((i - j) % t, (j - i) % t)
-
-
-def has_all_distinct_s_jumps(t: int, s_values: tuple[int, ...]) -> bool:
-    jump_set = {
-        jump_distance(i, j, t)
-        for i, j in itertools.combinations(s_values, 2)
-    }
-    return len(jump_set) == math.comb(len(s_values), 2)
 
 
 def undirected_edges_from_jumps(t: int, jumps: set[int]) -> set[tuple[int, int]]:
@@ -852,6 +847,29 @@ def build_inequality_data(
     )
 
 
+def raw_coefficients_for_case(case: AnalysisCase) -> tuple[list[int], int, int]:
+    j_max = case.t // 2
+    j_list = list(range(1, j_max + 1))
+    jump_to_idx = {jump: idx for idx, jump in enumerate(j_list)}
+    raw_coeffs = [0 for _ in j_list]
+    for i, j in edges_from_vertex_subset(set(case.s_values)):
+        jump = jump_distance(i, j, case.t)
+        raw_coeffs[jump_to_idx[jump]] += 1
+    return raw_coeffs, len(case.s_values), turan_bound(len(case.s_values), case.m)
+
+
+def analysis_uniform_flag(case: AnalysisCase, use_lift: bool) -> int:
+    raw_coeffs, s_size, d_m_s = raw_coefficients_for_case(case)
+    return uniform_coefficients_flag(
+        build_inequality_data(
+            raw_coeffs=raw_coeffs,
+            s_size=s_size,
+            d_m_s=d_m_s,
+            use_lift=use_lift,
+        ).coeffs
+    )
+
+
 def linear_form_value(
     coeffs: list[int],
     jumps_l: set[int],
@@ -998,6 +1016,40 @@ def format_status_table(
     return "\n".join(lines)
 
 
+def csv_header_names() -> list[str]:
+    return [
+        "t",
+        "floor_t_over_2",
+        "m",
+        "s",
+        "thm2",
+        "d_m_s",
+        "ineq",
+        "aTy",
+        "rhs",
+        "max_lhs",
+        "sssp",
+        "n_tight",
+        "rank_tight",
+        "n_feas",
+        "rank_feas",
+        "chk",
+        "uniform",
+        "status",
+    ]
+
+
+def format_status_csv(
+    rendered_lines: list[tuple[str, list[tuple[str, str]], str]],
+) -> str:
+    buffer = io.StringIO()
+    writer = csv.writer(buffer, lineterminator="\n")
+    writer.writerow(csv_header_names())
+    for _, fields, terminal_status in rendered_lines:
+        writer.writerow([value for _, value in fields] + [terminal_status])
+    return buffer.getvalue().rstrip("\n")
+
+
 def build_status_fields(
     t: int,
     m: int,
@@ -1008,7 +1060,7 @@ def build_status_fields(
     tight_rank: int | None,
     feasible_tight_count: int | None,
     feasible_tight_rank: int | None,
-    alldiff: int,
+    uniform: int,
     a_coeffs: list[int],
     d_m_s: int,
     rhs_value: int,
@@ -1045,9 +1097,14 @@ def build_status_fields(
         ("N.feas", gate_ratio(feasible_tight_count, j_max)),
         ("rank.feas", gate_ratio(feasible_tight_rank, j_max)),
         ("chk", f"({tiers_str})"),
-        ("alldiff", str(alldiff)),
+        ("uniform", str(uniform)),
     ]
     return fields, terminal_status
+
+
+def uniform_coefficients_flag(a_coeffs: list[int]) -> int:
+    nonzero_coeffs = {coeff for coeff in a_coeffs if coeff != 0}
+    return 1 if len(nonzero_coeffs) <= 1 else 0
 
 
 def final_status_line(
@@ -1062,7 +1119,7 @@ def final_status_line(
     tight_rank: int | None,
     feasible_tight_count: int | None,
     feasible_tight_rank: int | None,
-    alldiff: int,
+    uniform: int,
     a_coeffs: list[int],
     d_m_s: int,
     rhs_value: int,
@@ -1083,7 +1140,7 @@ def final_status_line(
         tight_rank=tight_rank,
         feasible_tight_count=feasible_tight_count,
         feasible_tight_rank=feasible_tight_rank,
-        alldiff=alldiff,
+        uniform=uniform,
         a_coeffs=a_coeffs,
         d_m_s=d_m_s,
         rhs_value=rhs_value,
@@ -1128,7 +1185,6 @@ def compute_summary(
     s_sorted = sorted(s_set)
     s_edges = edges_from_vertex_subset(s_set)
     s_jump_set = {jump_distance(i, j, t) for i, j in s_edges}
-    alldiff = 1 if len(s_jump_set) == len(s_edges) else 0
     jump_to_idx = {jump: idx for idx, jump in enumerate(j_list)}
     raw_coeffs = [0 for _ in j_list]
     for i, j in s_edges:
@@ -1142,6 +1198,7 @@ def compute_summary(
         use_lift=use_lift,
     )
     a_coeffs = inequality.coeffs
+    uniform = uniform_coefficients_flag(a_coeffs)
     rhs_value = inequality.rhs
     if use_recipe:
         recipe_subsets = build_recipe_jump_sets(
@@ -1168,7 +1225,7 @@ def compute_summary(
             tight_rank=None,
             feasible_tight_count=None,
             feasible_tight_rank=None,
-            alldiff=alldiff,
+            uniform=uniform,
             a_coeffs=a_coeffs,
             d_m_s=d_m_s,
             rhs_value=rhs_value,
@@ -1190,7 +1247,7 @@ def compute_summary(
             tight_rank=None,
             feasible_tight_count=None,
             feasible_tight_rank=None,
-            alldiff=alldiff,
+            uniform=uniform,
             a_coeffs=a_coeffs,
             d_m_s=d_m_s,
             rhs_value=rhs_value,
@@ -1211,7 +1268,7 @@ def compute_summary(
             "rhs_value": rhs_value,
             "sssp": sssp,
             "s_size": s_size,
-            "alldiff": alldiff,
+            "uniform": uniform,
             "a_coeffs": a_coeffs,
             "raw_coeffs": raw_coeffs,
             "pair_count": inequality.pair_count,
@@ -1437,7 +1494,7 @@ def compute_summary(
         tight_rank=tight_y_plus_rank,
         feasible_tight_count=feasible_tight_count,
         feasible_tight_rank=feasible_tight_y_plus_rank,
-        alldiff=alldiff,
+        uniform=uniform,
         a_coeffs=a_coeffs,
         d_m_s=d_m_s,
         rhs_value=rhs_value,
@@ -1459,7 +1516,7 @@ def compute_summary(
         tight_rank=tight_y_plus_rank,
         feasible_tight_count=feasible_tight_count,
         feasible_tight_rank=feasible_tight_y_plus_rank,
-        alldiff=alldiff,
+        uniform=uniform,
         a_coeffs=a_coeffs,
         d_m_s=d_m_s,
         rhs_value=rhs_value,
@@ -1485,7 +1542,7 @@ def compute_summary(
         "rhs_value": rhs_value,
         "sssp": sssp,
         "s_size": s_size,
-        "alldiff": alldiff,
+        "uniform": uniform,
         "a_coeffs": a_coeffs,
         "raw_coeffs": raw_coeffs,
         "pair_count": inequality.pair_count,
@@ -2018,6 +2075,57 @@ def resolve_output_path(
     return normalize_output_path(args.output_dir / default_path.name)
 
 
+def canonical_range_spec(spec: str, arg_name: str) -> str:
+    values = parse_int_or_closed_range(spec, arg_name)
+    if len(values) == 1:
+        return str(values[0])
+    return f"{values[0]}-{values[-1]}"
+
+
+def canonical_s_spec_for_filename(spec: str) -> str:
+    explicit_s_values, s_size_values = parse_s_spec(spec, "--S")
+    if explicit_s_values is not None:
+        return ",".join(str(value) for value in explicit_s_values)
+    assert s_size_values is not None
+    if len(s_size_values) == 1:
+        return str(s_size_values[0])
+    return f"{s_size_values[0]}-{s_size_values[-1]}"
+
+
+def sanitize_filename_fragment(value: str) -> str:
+    sanitized = value.strip().replace(" ", "")
+    for source, target in (
+        (":", "-"),
+        ("/", "_"),
+        ("\\", "_"),
+        ("{", ""),
+        ("}", ""),
+        ("'", ""),
+        ('"', ""),
+    ):
+        sanitized = sanitized.replace(source, target)
+    return sanitized or "empty"
+
+
+def resolve_csv_output_path(args: argparse.Namespace) -> Path:
+    m_spec = canonical_range_spec(args.m, "--m") if args.m is not None else "auto"
+    parts = [
+        f"t={canonical_range_spec(args.t, '--t')}",
+        f"S={canonical_s_spec_for_filename(args.S)}",
+        f"m={m_spec}",
+        f"ineq={args.lift_mode}",
+    ]
+    if args.relaxation:
+        parts.append("relax")
+    if args.recipe:
+        parts.append("recipe")
+    if args.onlyuniform:
+        parts.append("uniform")
+    filename = "_".join(sanitize_filename_fragment(part) for part in parts) + ".csv"
+    assert args.output_dir is not None
+    return args.output_dir / filename
+
+
 def write_latex_output(
     summary: dict,
     output: Path,
@@ -2038,6 +2146,15 @@ def write_latex_output(
             wait_for_show_command()
 
 
+def write_csv_output(
+    rendered_lines: list[tuple[str, list[tuple[str, str]], str]],
+    output: Path,
+) -> None:
+    csv_text = format_status_csv(rendered_lines)
+    output.write_text(csv_text + "\n", encoding="utf-8")
+    print(f"Results dumped to {output}")
+
+
 def run_analysis_case(
     case: AnalysisCase,
     args: argparse.Namespace,
@@ -2048,6 +2165,9 @@ def run_analysis_case(
     multi_case: bool,
     facet_label: str | None = None,
 ) -> dict:
+    if args.onlyuniform and analysis_uniform_flag(case, use_lift) != 1:
+        raise SkipAnalysis()
+
     summary = compute_summary(
         case.t,
         case.m,
@@ -2097,8 +2217,6 @@ def case_error_fields(
     j_max = case.t // 2
     j_list = list(range(1, j_max + 1))
     s_edges = edges_from_vertex_subset(s_set)
-    s_jump_set = {jump_distance(i, j, case.t) for i, j in s_edges}
-    alldiff = 1 if len(s_jump_set) == len(s_edges) else 0
     jump_to_idx = {jump: idx for idx, jump in enumerate(j_list)}
     raw_coeffs = [0 for _ in j_list]
     for i, j in s_edges:
@@ -2112,6 +2230,7 @@ def case_error_fields(
         use_lift=use_lift,
     )
     a_coeffs = inequality.coeffs
+    uniform = uniform_coefficients_flag(a_coeffs)
     rhs_value = inequality.rhs
     sssp = sssp_value(a_coeffs, rhs_value)
     fields, _ = build_status_fields(
@@ -2124,7 +2243,7 @@ def case_error_fields(
         tight_rank=None,
         feasible_tight_count=None,
         feasible_tight_rank=None,
-        alldiff=alldiff,
+        uniform=uniform,
         a_coeffs=a_coeffs,
         d_m_s=d_m_s,
         rhs_value=rhs_value,
@@ -2136,8 +2255,25 @@ def case_error_fields(
     return fields, "ERROR"
 
 
-def run_single_mode(case: AnalysisCase, args: argparse.Namespace) -> None:
+def uses_structured_stdout(args: argparse.Namespace) -> bool:
+    return args.table or args.csv
+
+
+def run_single_mode(case: AnalysisCase, args: argparse.Namespace) -> int:
     rendered_lines: list[tuple[str, list[tuple[str, str]], str]] = []
+    structured_stdout = uses_structured_stdout(args)
+    emitted_count = 0
+
+    def emit_structured_output() -> None:
+        if not rendered_lines:
+            return
+        if args.progress and args.table:
+            print()
+        if args.csv:
+            write_csv_output(rendered_lines, resolve_csv_output_path(args))
+        elif args.table:
+            print(format_status_table(rendered_lines, include_progress_prefix=args.progress))
+
     if args.lift_mode == "addlifted":
         failures = 0
         try:
@@ -2146,11 +2282,11 @@ def run_single_mode(case: AnalysisCase, args: argparse.Namespace) -> None:
                 args,
                 use_lift=False,
                 show_progress=args.progress,
-                print_final_status=not args.table,
+                print_final_status=not structured_stdout,
                 include_progress_prefix=args.progress,
                 multi_case=False,
             )
-            if args.table:
+            if structured_stdout:
                 rendered_lines.append(
                     (
                         standard_summary["final_progress_prefix"],
@@ -2158,9 +2294,12 @@ def run_single_mode(case: AnalysisCase, args: argparse.Namespace) -> None:
                         standard_summary["terminal_status"],
                     )
                 )
+            emitted_count += 1
+        except SkipAnalysis:
+            pass
         except Exception:
             failures += 1
-            if args.table:
+            if structured_stdout:
                 error_fields, error_status = case_error_fields(case, use_lift=False)
                 rendered_lines.append(
                     (
@@ -2178,12 +2317,11 @@ def run_single_mode(case: AnalysisCase, args: argparse.Namespace) -> None:
                 args,
                 use_lift=True,
                 show_progress=args.progress,
-                print_final_status=not args.table,
+                print_final_status=not structured_stdout,
                 include_progress_prefix=args.progress,
                 multi_case=False,
-                facet_label="FACET+",
             )
-            if args.table:
+            if structured_stdout:
                 rendered_lines.append(
                     (
                         lifted_summary["final_progress_prefix"],
@@ -2191,9 +2329,12 @@ def run_single_mode(case: AnalysisCase, args: argparse.Namespace) -> None:
                         lifted_summary["terminal_status"],
                     )
                 )
+            emitted_count += 1
+        except SkipAnalysis:
+            pass
         except Exception:
             failures += 1
-            if args.table:
+            if structured_stdout:
                 error_fields, error_status = case_error_fields(case, use_lift=True)
                 rendered_lines.append(
                     (
@@ -2205,14 +2346,14 @@ def run_single_mode(case: AnalysisCase, args: argparse.Namespace) -> None:
             else:
                 print(case_error_line(case, use_lift=True, include_progress_prefix=args.progress))
 
-        if args.table and rendered_lines:
-            if args.progress:
-                print()
-            print(format_status_table(rendered_lines, include_progress_prefix=args.progress))
+        if structured_stdout:
+            emit_structured_output()
 
         if failures > 0:
             raise SystemExit(1)
-        return
+        if emitted_count == 0:
+            raise SystemExit("No analyses remain after applying --onlyuniform.")
+        return emitted_count
 
     use_lift = args.lift_mode == "lifted"
     try:
@@ -2221,11 +2362,11 @@ def run_single_mode(case: AnalysisCase, args: argparse.Namespace) -> None:
             args,
             use_lift=use_lift,
             show_progress=args.progress,
-            print_final_status=not args.table,
+            print_final_status=not structured_stdout,
             include_progress_prefix=args.progress,
             multi_case=False,
         )
-        if args.table:
+        if structured_stdout:
             rendered_lines.append(
                 (
                     summary["final_progress_prefix"],
@@ -2233,27 +2374,30 @@ def run_single_mode(case: AnalysisCase, args: argparse.Namespace) -> None:
                     summary["terminal_status"],
                 )
             )
-            if args.progress:
-                print()
-            print(format_status_table(rendered_lines, include_progress_prefix=args.progress))
+            emit_structured_output()
+        emitted_count += 1
+    except SkipAnalysis:
+        raise SystemExit("No analyses remain after applying --onlyuniform.")
     except Exception:
-        if args.table:
+        if structured_stdout:
             error_fields, error_status = case_error_fields(case, use_lift=use_lift)
-            if args.progress:
-                print()
-            print(
-                format_status_table(
-                    [("-/- " if args.progress else "", error_fields, error_status)],
-                    include_progress_prefix=args.progress,
+            rendered_lines.append(
+                (
+                    "-/- " if args.progress else "",
+                    error_fields,
+                    error_status,
                 )
             )
+            emit_structured_output()
         else:
             print(case_error_line(case, use_lift=use_lift, include_progress_prefix=args.progress))
         raise SystemExit(1)
+    return emitted_count
 
 
-def run_multi_mode(cases: list[AnalysisCase], args: argparse.Namespace) -> int:
+def run_multi_mode(cases: list[AnalysisCase], args: argparse.Namespace) -> tuple[int, int]:
     failures = 0
+    emitted_count = 0
     rendered_lines: list[tuple[str, list[tuple[str, str]], str]] = []
 
     for case in cases:
@@ -2279,6 +2423,10 @@ def run_multi_mode(cases: list[AnalysisCase], args: argparse.Namespace) -> int:
                 standard_fields = standard_summary["status_fields"]
                 standard_status = standard_summary["terminal_status"]
                 standard_prefix = standard_summary["final_progress_prefix"]
+                rendered_lines.append((standard_prefix, standard_fields, standard_status))
+                emitted_count += 1
+            except SkipAnalysis:
+                pass
             except Exception as exc:
                 failures += 1
                 standard_fields, standard_status = case_error_fields(
@@ -2286,6 +2434,7 @@ def run_multi_mode(cases: list[AnalysisCase], args: argparse.Namespace) -> int:
                     use_lift=False,
                 )
                 standard_prefix = "-/- " if args.progress else ""
+                rendered_lines.append((standard_prefix, standard_fields, standard_status))
 
             try:
                 lifted_summary = run_analysis_case(
@@ -2296,11 +2445,14 @@ def run_multi_mode(cases: list[AnalysisCase], args: argparse.Namespace) -> int:
                     print_final_status=False,
                     include_progress_prefix=args.progress,
                     multi_case=True,
-                    facet_label="FACET+",
                 )
                 lifted_fields = lifted_summary["status_fields"]
                 lifted_status = lifted_summary["terminal_status"]
                 lifted_prefix = lifted_summary["final_progress_prefix"]
+                rendered_lines.append((lifted_prefix, lifted_fields, lifted_status))
+                emitted_count += 1
+            except SkipAnalysis:
+                pass
             except Exception as exc:
                 failures += 1
                 lifted_fields, lifted_status = case_error_fields(
@@ -2308,9 +2460,7 @@ def run_multi_mode(cases: list[AnalysisCase], args: argparse.Namespace) -> int:
                     use_lift=True,
                 )
                 lifted_prefix = "-/- " if args.progress else ""
-
-            rendered_lines.append((standard_prefix, standard_fields, standard_status))
-            rendered_lines.append((lifted_prefix, lifted_fields, lifted_status))
+                rendered_lines.append((lifted_prefix, lifted_fields, lifted_status))
             continue
 
         use_lift = args.lift_mode == "lifted"
@@ -2331,6 +2481,9 @@ def run_multi_mode(cases: list[AnalysisCase], args: argparse.Namespace) -> int:
                     summary["terminal_status"],
                 )
             )
+            emitted_count += 1
+        except SkipAnalysis:
+            continue
         except Exception as exc:
             failures += 1
             error_fields, error_status = case_error_fields(
@@ -2345,33 +2498,41 @@ def run_multi_mode(cases: list[AnalysisCase], args: argparse.Namespace) -> int:
                 )
             )
 
-    if args.table:
+    if args.csv:
+        write_csv_output(rendered_lines, resolve_csv_output_path(args))
+    elif args.table:
         print(format_status_table(rendered_lines, include_progress_prefix=args.progress))
     else:
         widths = status_field_widths([fields for _, fields, _ in rendered_lines])
         for prefix, fields, terminal_status in rendered_lines:
             print(format_status_fields(fields, terminal_status, widths=widths, prefix=prefix))
 
-    return failures
+    return failures, emitted_count
 
 
 def main() -> None:
     args = parse_args()
     if args.show:
         args.latex = True
+    if args.table and args.csv:
+        raise ValueError("Use at most one of --table and --csv.")
+    if args.csv and args.progress:
+        raise ValueError("--csv cannot be combined with --progress.")
     if args.recipe and not args.relaxation:
         raise ValueError("--recipe requires --relax.")
 
     cases = resolve_analysis_cases(args)
     multi_case = len(cases) > 1
 
-    if args.latex:
+    if args.latex or args.csv:
         if args.output_dir is None:
             args.output_dir = Path("output")
         args.output_dir.mkdir(parents=True, exist_ok=True)
 
     if multi_case:
-        failures = run_multi_mode(cases, args)
+        failures, emitted_count = run_multi_mode(cases, args)
+        if emitted_count == 0 and args.onlyuniform:
+            raise SystemExit("No analyses remain after applying --onlyuniform.")
         if failures > 0:
             raise SystemExit(1)
         return
