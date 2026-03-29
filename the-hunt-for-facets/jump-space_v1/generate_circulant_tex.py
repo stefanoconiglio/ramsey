@@ -58,6 +58,9 @@ class AnalysisCase:
     m: int
 
 
+LATEX_GRAPH_COLS = 3
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
@@ -113,29 +116,13 @@ def parse_args() -> argparse.Namespace:
     )
     parser.set_defaults(lift_mode="standard")
     parser.add_argument(
-        "--output",
-        type=Path,
-        default=None,
-        help=(
-            "Output .tex file path for a single resolved case (used only with --latex). "
-            "With --addlifted, this path is used for the standard run and a sibling "
-            "_lift file is used for the lifted run."
-        ),
-    )
-    parser.add_argument(
         "--output-dir",
         type=Path,
         default=None,
         help=(
             "Directory for auto-named .tex files (used only with --latex). "
-            "Useful for sweeps; also works for single-case default naming."
+            "Defaults to ./output when --latex is enabled."
         ),
-    )
-    parser.add_argument(
-        "--cols",
-        type=int,
-        default=3,
-        help="Number of graph cells per row (default: 3).",
     )
     parser.add_argument(
         "--latex",
@@ -156,6 +143,11 @@ def parse_args() -> argparse.Namespace:
         dest="progress",
         action="store_true",
         help="Show live scan progress and prefix summary lines with current/total.",
+    )
+    parser.add_argument(
+        "--table",
+        action="store_true",
+        help="Print stdout summaries as a table with one header row and value-only data rows.",
     )
     parser.add_argument(
         "--all",
@@ -970,6 +962,42 @@ def status_field_widths(entries: list[list[tuple[str, str]]]) -> list[int]:
     return widths
 
 
+def format_status_table(
+    rendered_lines: list[tuple[str, list[tuple[str, str]], str]],
+    include_progress_prefix: bool,
+) -> str:
+    if not rendered_lines:
+        return ""
+
+    headers: list[str] = []
+    if include_progress_prefix:
+        headers.append("scan")
+    headers.extend(label for label, _ in rendered_lines[0][1])
+    headers.append("status")
+
+    rows: list[list[str]] = []
+    for prefix, fields, terminal_status in rendered_lines:
+        row: list[str] = []
+        if include_progress_prefix:
+            row.append(prefix.strip())
+        row.extend(value for _, value in fields)
+        row.append(terminal_status)
+        rows.append(row)
+
+    widths = [len(header) for header in headers]
+    for row in rows:
+        for idx, value in enumerate(row):
+            widths[idx] = max(widths[idx], len(value))
+
+    def format_row(values: list[str]) -> str:
+        return " | ".join(value.ljust(widths[idx]) for idx, value in enumerate(values))
+
+    separator = "-+-".join("-" * width for width in widths)
+    lines = [format_row(headers), separator]
+    lines.extend(format_row(row) for row in rows)
+    return "\n".join(lines)
+
+
 def build_status_fields(
     t: int,
     m: int,
@@ -1657,7 +1685,7 @@ def graph_cell_tex(
     return "\n".join(lines)
 
 
-def build_document(summary: dict, cols: int, show_all_graphs: bool) -> str:
+def build_document(summary: dict, show_all_graphs: bool) -> str:
     t = summary["t"]
     m = summary["m"]
     d_m_s = summary["d_m_s"]
@@ -1816,8 +1844,8 @@ def build_document(summary: dict, cols: int, show_all_graphs: bool) -> str:
     if not display_graphs:
         doc.append(r"\noindent No graph satisfies the check for this $(t,S)$.")
     else:
-        for start in range(0, len(display_graphs), cols):
-            row_subsets = display_graphs[start : start + cols]
+        for start in range(0, len(display_graphs), LATEX_GRAPH_COLS):
+            row_subsets = display_graphs[start : start + LATEX_GRAPH_COLS]
             doc.append(r"\noindent")
             row_cells: list[str] = []
             for entry in row_subsets:
@@ -1973,17 +2001,10 @@ def default_output_path(
     return Path(f"S={s_part}_m={m}_t={t}{suffix}.tex")
 
 
-def append_stem_suffix(path: Path, suffix: str) -> Path:
-    if path.suffix:
-        return path.with_name(f"{path.stem}{suffix}{path.suffix}")
-    return path.with_name(path.name + suffix)
-
-
 def resolve_output_path(
     args: argparse.Namespace,
     case: AnalysisCase,
     use_lift: bool,
-    multi_case: bool,
 ) -> Path:
     default_path = default_output_path(
         case.t,
@@ -1993,34 +2014,18 @@ def resolve_output_path(
         use_relaxation=args.relaxation,
     )
 
-    if multi_case:
-        if args.output_dir is not None:
-            return normalize_output_path(args.output_dir / default_path.name)
-        return normalize_output_path(default_path)
-
-    if args.output is not None:
-        base_output = normalize_output_path(args.output)
-        if args.relaxation:
-            base_output = append_stem_suffix(base_output, "_relax")
-        if args.lift_mode == "addlifted" and use_lift:
-            return append_stem_suffix(base_output, "_lift")
-        return base_output
-
-    if args.output_dir is not None:
-        return normalize_output_path(args.output_dir / default_path.name)
-
-    return normalize_output_path(default_path)
+    assert args.output_dir is not None
+    return normalize_output_path(args.output_dir / default_path.name)
 
 
 def write_latex_output(
     summary: dict,
     output: Path,
-    cols: int,
     show_all_graphs: bool,
     verbose: bool,
     show_pdf_after: bool,
 ) -> None:
-    tex = build_document(summary, cols, show_all_graphs)
+    tex = build_document(summary, show_all_graphs)
     output.write_text(tex, encoding="utf-8")
     resolved_output = output.resolve()
     if verbose:
@@ -2057,11 +2062,10 @@ def run_analysis_case(
         facet_label=facet_label,
     )
     if args.latex:
-        output = resolve_output_path(args, case, use_lift=use_lift, multi_case=multi_case)
+        output = resolve_output_path(args, case, use_lift=use_lift)
         write_latex_output(
             summary,
             output,
-            cols=args.cols,
             show_all_graphs=args.show_all_graphs,
             verbose=print_final_status,
             show_pdf_after=args.show,
@@ -2133,36 +2137,78 @@ def case_error_fields(
 
 
 def run_single_mode(case: AnalysisCase, args: argparse.Namespace) -> None:
+    rendered_lines: list[tuple[str, list[tuple[str, str]], str]] = []
     if args.lift_mode == "addlifted":
         failures = 0
         try:
-            run_analysis_case(
+            standard_summary = run_analysis_case(
                 case,
                 args,
                 use_lift=False,
                 show_progress=args.progress,
-                print_final_status=True,
+                print_final_status=not args.table,
                 include_progress_prefix=args.progress,
                 multi_case=False,
             )
+            if args.table:
+                rendered_lines.append(
+                    (
+                        standard_summary["final_progress_prefix"],
+                        standard_summary["status_fields"],
+                        standard_summary["terminal_status"],
+                    )
+                )
         except Exception:
             failures += 1
-            print(case_error_line(case, use_lift=False, include_progress_prefix=args.progress))
+            if args.table:
+                error_fields, error_status = case_error_fields(case, use_lift=False)
+                rendered_lines.append(
+                    (
+                        "-/- " if args.progress else "",
+                        error_fields,
+                        error_status,
+                    )
+                )
+            else:
+                print(case_error_line(case, use_lift=False, include_progress_prefix=args.progress))
 
         try:
-            run_analysis_case(
+            lifted_summary = run_analysis_case(
                 case,
                 args,
                 use_lift=True,
                 show_progress=args.progress,
-                print_final_status=True,
+                print_final_status=not args.table,
                 include_progress_prefix=args.progress,
                 multi_case=False,
                 facet_label="FACET+",
             )
+            if args.table:
+                rendered_lines.append(
+                    (
+                        lifted_summary["final_progress_prefix"],
+                        lifted_summary["status_fields"],
+                        lifted_summary["terminal_status"],
+                    )
+                )
         except Exception:
             failures += 1
-            print(case_error_line(case, use_lift=True, include_progress_prefix=args.progress))
+            if args.table:
+                error_fields, error_status = case_error_fields(case, use_lift=True)
+                rendered_lines.append(
+                    (
+                        "-/- " if args.progress else "",
+                        error_fields,
+                        error_status,
+                    )
+                )
+            else:
+                print(case_error_line(case, use_lift=True, include_progress_prefix=args.progress))
+
+        if args.table and rendered_lines:
+            if args.progress:
+                print()
+            print(format_status_table(rendered_lines, include_progress_prefix=args.progress))
 
         if failures > 0:
             raise SystemExit(1)
@@ -2170,17 +2216,39 @@ def run_single_mode(case: AnalysisCase, args: argparse.Namespace) -> None:
 
     use_lift = args.lift_mode == "lifted"
     try:
-        run_analysis_case(
+        summary = run_analysis_case(
             case,
             args,
             use_lift=use_lift,
             show_progress=args.progress,
-            print_final_status=True,
+            print_final_status=not args.table,
             include_progress_prefix=args.progress,
             multi_case=False,
         )
+        if args.table:
+            rendered_lines.append(
+                (
+                    summary["final_progress_prefix"],
+                    summary["status_fields"],
+                    summary["terminal_status"],
+                )
+            )
+            if args.progress:
+                print()
+            print(format_status_table(rendered_lines, include_progress_prefix=args.progress))
     except Exception:
-        print(case_error_line(case, use_lift=use_lift, include_progress_prefix=args.progress))
+        if args.table:
+            error_fields, error_status = case_error_fields(case, use_lift=use_lift)
+            if args.progress:
+                print()
+            print(
+                format_status_table(
+                    [("-/- " if args.progress else "", error_fields, error_status)],
+                    include_progress_prefix=args.progress,
+                )
+            )
+        else:
+            print(case_error_line(case, use_lift=use_lift, include_progress_prefix=args.progress))
         raise SystemExit(1)
 
 
@@ -2277,9 +2345,12 @@ def run_multi_mode(cases: list[AnalysisCase], args: argparse.Namespace) -> int:
                 )
             )
 
-    widths = status_field_widths([fields for _, fields, _ in rendered_lines])
-    for prefix, fields, terminal_status in rendered_lines:
-        print(format_status_fields(fields, terminal_status, widths=widths, prefix=prefix))
+    if args.table:
+        print(format_status_table(rendered_lines, include_progress_prefix=args.progress))
+    else:
+        widths = status_field_widths([fields for _, fields, _ in rendered_lines])
+        for prefix, fields, terminal_status in rendered_lines:
+            print(format_status_fields(fields, terminal_status, widths=widths, prefix=prefix))
 
     return failures
 
@@ -2288,26 +2359,16 @@ def main() -> None:
     args = parse_args()
     if args.show:
         args.latex = True
-    if args.latex and args.cols < 1:
-        raise ValueError("--cols must be at least 1.")
     if args.recipe and not args.relaxation:
         raise ValueError("--recipe requires --relax.")
 
     cases = resolve_analysis_cases(args)
     multi_case = len(cases) > 1
 
-    if not args.latex:
-        if args.output is not None:
-            print("Ignoring --output because --latex was not set.")
-        if args.output_dir is not None:
-            print("Ignoring --output-dir because --latex was not set.")
-    else:
-        if multi_case and args.output is not None:
-            raise ValueError(
-                "--output requires a single resolved (t,S,m) case; use --output-dir for sweeps."
-            )
-        if args.output_dir is not None:
-            args.output_dir.mkdir(parents=True, exist_ok=True)
+    if args.latex:
+        if args.output_dir is None:
+            args.output_dir = Path("output")
+        args.output_dir.mkdir(parents=True, exist_ok=True)
 
     if multi_case:
         failures = run_multi_mode(cases, args)
