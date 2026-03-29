@@ -19,6 +19,7 @@ from dataclasses import dataclass
 from fractions import Fraction
 import itertools
 import math
+import os
 import re
 import subprocess
 import sys
@@ -40,15 +41,14 @@ class InequalityData:
     lift_cap: int | None
 
 
-@dataclass(frozen=True)
+@dataclass
 class GraphRecord:
     idx: int
     jumps_l: set[int]
     lhs_value: int
     overlap_count: int
     mark_ok: bool
-    is_minimal: bool
-    is_feasible: bool
+    is_feasible: bool | None
 
 
 @dataclass(frozen=True)
@@ -76,21 +76,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--S",
         type=str,
-        default=None,
+        required=True,
         help=(
-            "Target vertex subset S (subset of V={0,...,t-1}). "
-            "Examples: '0,1,2', '{0,3,7}', '5'. "
-            "If omitted, use --S-size to sweep all subsets containing 0."
-        ),
-    )
-    parser.add_argument(
-        "--S-size",
-        "--|S|",
-        dest="s_size",
-        default=None,
-        help=(
-            "|S|, as either an integer or an inclusive min:max range. "
-            "Used only when --S is omitted; all subsets containing 0 are generated."
+            "Target vertex subset S or a size specification. "
+            "Examples: '0,1,2', '{0,3,7}' for an explicit set, or '5' / '4:6' "
+            "to mean |S|=5 or |S| in 4..6 and sweep all subsets containing 0."
         ),
     )
     parser.add_argument(
@@ -153,6 +143,21 @@ def parse_args() -> argparse.Namespace:
         help="Generate LaTeX/PDF output. Without this flag, only stdout summary is printed.",
     )
     parser.add_argument(
+        "--show",
+        action="store_true",
+        help=(
+            "After LaTeX compilation, open each rendered PDF and wait for "
+            "Enter to continue, q to stop, or Ctrl+C to abort. Implies --latex."
+        ),
+    )
+    parser.add_argument(
+        "--progress",
+        "--show-progress",
+        dest="progress",
+        action="store_true",
+        help="Show live scan progress and prefix summary lines with current/total.",
+    )
+    parser.add_argument(
         "--all",
         dest="show_all_graphs",
         action="store_true",
@@ -182,15 +187,11 @@ def parse_args() -> argparse.Namespace:
         "--recipe",
         action="store_true",
         help=(
-            "Use the proof recipe: build Y from all rhs-subsets of the active jumps "
-            "(where a_j=1), then extend with one free jump (a_j=0) at a time from "
-            "the first such subset. If the recipe does not apply, raise an error."
+            "Use the proof recipe in relax mode: build Y from all rhs-subsets of "
+            "the active jumps (where a_j=1), then extend with one free jump "
+            "(a_j=0) at a time from the first such subset. If the recipe does "
+            "not apply, raise an error."
         ),
-    )
-    parser.add_argument(
-        "--stop-on-error",
-        action="store_true",
-        help="In multi-case mode, stop at the first failing case.",
     )
     parser.add_argument(
         "--onlyalldiff1",
@@ -226,6 +227,13 @@ def parse_explicit_s_values(raw: str) -> tuple[int, ...]:
     return tuple(sorted(set(values)))
 
 
+def parse_s_spec(raw: str, arg_name: str) -> tuple[tuple[int, ...] | None, list[int] | None]:
+    stripped = raw.strip()
+    if any(char in stripped for char in ",{}"):
+        return parse_explicit_s_values(raw), None
+    return None, parse_int_or_closed_range(stripped, arg_name)
+
+
 def validate_explicit_s_values(values: tuple[int, ...], t: int) -> None:
     invalid = sorted(v for v in values if v < 0 or v >= t)
     if invalid:
@@ -247,17 +255,13 @@ def resolve_analysis_cases(args: argparse.Namespace) -> list[AnalysisCase]:
     if any(t < 2 for t in t_values):
         raise ValueError("t must be at least 2.")
 
-    if args.S is None and args.s_size is None:
-        raise ValueError("Provide either --S or --S-size.")
+    explicit_s_values, s_size_values = parse_s_spec(args.S, "--S")
 
-    explicit_s_values = parse_explicit_s_values(args.S) if args.S is not None else None
     if explicit_s_values is not None and len(t_values) == 1:
         validate_explicit_s_values(explicit_s_values, t_values[0])
 
-    s_size_values: list[int] | None = None
     if explicit_s_values is None:
-        assert args.s_size is not None
-        s_size_values = parse_int_or_closed_range(args.s_size, "--S-size")
+        assert s_size_values is not None
         if any(s_size < 1 for s_size in s_size_values):
             raise ValueError("|S| must be at least 1.")
 
@@ -734,23 +738,48 @@ def matrix_rows_from_columns(columns: list[list[int]]) -> list[list[int]]:
     ]
 
 
+def matrix_data_from_columns(
+    columns: list[list[int]],
+    use_fraction: bool,
+) -> tuple[
+    list[list[int]],
+    list[list[int]],
+    list[list[int]],
+    int | None,
+    list[int] | list[float] | None,
+]:
+    rows = matrix_rows_from_columns(columns)
+    y_plus_columns = [column + [1] for column in columns]
+    y_plus_rows = matrix_rows_from_columns(y_plus_columns)
+    if not y_plus_rows:
+        return rows, y_plus_columns, y_plus_rows, None, None
+
+    rank_y_plus = matrix_rank(y_plus_rows, use_fraction=use_fraction)
+    y_plus_max_rank = min(len(y_plus_rows), len(y_plus_columns))
+    multiplier = (
+        nullspace_vector(y_plus_rows, use_fraction=use_fraction)
+        if rank_y_plus < y_plus_max_rank
+        else None
+    )
+    return rows, y_plus_columns, y_plus_rows, rank_y_plus, multiplier
+
+
 def plain_set(values: list[int]) -> str:
     if not values:
         return "{}"
     return "{" + ",".join(str(v) for v in values) + "}"
 
 
-def facet_status(rank_y_plus: int, j_max: int) -> str:
-    return "FACET" if rank_y_plus == j_max else "FAILURE"
+def facet_status(passed: bool) -> str:
+    return "FACET" if passed else "FAILURE"
 
 
 def terminal_status_label(
-    rank_y_plus: int,
-    j_max: int,
+    passed: bool,
     use_relaxation: bool,
     facet_label: str | None = None,
 ) -> str:
-    terminal_status = facet_status(rank_y_plus, j_max)
+    terminal_status = facet_status(passed)
     if facet_label is not None and terminal_status == "FACET":
         terminal_status = facet_label
     if use_relaxation:
@@ -882,13 +911,115 @@ def status_line(
     thm2: int,
     s_sorted: list[int],
     j_max: int,
-    n_check: int,
+    tight_count: int,
+    feasible_tight_count: int | None,
+    use_relaxation: bool,
 ) -> str:
+    feasibility_part = ""
+    if not use_relaxation and feasible_tight_count is not None:
+        feasibility_part = f", N.feas={feasible_tight_count}"
     return (
         f"{current}/{total} "
         f"t={t}, m={m}, thm2={thm2}, S={plain_set(s_sorted)}, floor(t/2)={j_max}, "
-        f"N={n_check}"
+        f"N.tight={tight_count}{feasibility_part}"
     )
+
+
+def gate_symbol(passed: bool | None) -> str:
+    if passed is None:
+        return "-"
+    return "1" if passed else "0"
+
+
+def gate_ratio(value: int | None, target: int) -> str:
+    if value is None:
+        return "-"
+    return f"{value}/{target}"
+
+
+def progress_prefix(current: int, total: int, include_progress_prefix: bool) -> str:
+    return f"{current}/{total} " if include_progress_prefix else ""
+
+
+def format_status_fields(
+    fields: list[tuple[str, str]],
+    terminal_status: str,
+    widths: list[int] | None = None,
+    prefix: str = "",
+) -> str:
+    chunks = [f"{label}={value}" for label, value in fields]
+    if widths is not None:
+        padded_chunks = [
+            f"{chunk},".ljust(widths[idx] + 1)
+            for idx, chunk in enumerate(chunks)
+        ]
+        body = " ".join(padded_chunks)
+        return f"{prefix}{body} {terminal_status}"
+    body = ", ".join(chunks)
+    return f"{prefix}{body}, {terminal_status}"
+
+
+def status_field_widths(entries: list[list[tuple[str, str]]]) -> list[int]:
+    if not entries:
+        return []
+    field_count = len(entries[0])
+    widths = [0 for _ in range(field_count)]
+    for fields in entries:
+        for idx, (label, value) in enumerate(fields):
+            widths[idx] = max(widths[idx], len(f"{label}={value}"))
+    return widths
+
+
+def build_status_fields(
+    t: int,
+    m: int,
+    thm2: int,
+    s_sorted: list[int],
+    j_max: int,
+    tight_count: int | None,
+    tight_rank: int | None,
+    feasible_tight_count: int | None,
+    feasible_tight_rank: int | None,
+    alldiff: int,
+    a_coeffs: list[int],
+    d_m_s: int,
+    rhs_value: int,
+    sssp: str,
+    tier_results: tuple[bool | None, bool | None, bool | None, bool | None, bool | None],
+    use_lift: bool,
+    use_relaxation: bool,
+    facet_label: str | None = None,
+) -> tuple[list[tuple[str, str]], str]:
+    coeffs_str = ",".join(str(value) for value in a_coeffs)
+    max_lhs = sum(a_coeffs)
+    mode = "lifted" if use_lift else "standard"
+    final_gate = tier_results[2] if use_relaxation else tier_results[4]
+    terminal_status = terminal_status_label(
+        passed=(final_gate is True),
+        use_relaxation=use_relaxation,
+        facet_label=facet_label,
+    )
+    tiers_str = ",".join(gate_symbol(result) for result in tier_results)
+    fields = [
+        ("t", str(t)),
+        ("floor(t/2)", str(j_max)),
+        ("m", str(m)),
+        ("S", plain_set(s_sorted)),
+        ("thm2", str(thm2)),
+        ("d_m(|S|)", str(d_m_s)),
+        ("ineq", mode),
+        ("a'y", f"({coeffs_str})'y"),
+        ("rhs", str(rhs_value)),
+        ("maxLHS", str(max_lhs)),
+        ("SSSP", sssp),
+        ("N.tight", gate_ratio(tight_count, j_max)),
+        ("rank.tight", gate_ratio(tight_rank, j_max)),
+        ("N.feas", gate_ratio(feasible_tight_count, j_max)),
+        ("rank.feas", gate_ratio(feasible_tight_rank, j_max)),
+        ("chk", f"({tiers_str})"),
+        ("alldiff", str(alldiff)),
+    ]
+    return fields, terminal_status
 
 
 def final_status_line(
@@ -899,33 +1030,45 @@ def final_status_line(
     thm2: int,
     s_sorted: list[int],
     j_max: int,
-    n_check: int,
-    rank_y_plus: int,
+    tight_count: int | None,
+    tight_rank: int | None,
+    feasible_tight_count: int | None,
+    feasible_tight_rank: int | None,
     alldiff: int,
     a_coeffs: list[int],
     d_m_s: int,
     rhs_value: int,
     sssp: str,
+    tier_results: tuple[bool | None, bool | None, bool | None, bool | None, bool | None],
     use_lift: bool,
     use_relaxation: bool,
+    include_progress_prefix: bool,
     facet_label: str | None = None,
 ) -> str:
-    coeffs_str = ",".join(str(value) for value in a_coeffs)
-    max_lhs = sum(a_coeffs)
-    mode = "lifted" if use_lift else "standard"
-    terminal_status = terminal_status_label(
-        rank_y_plus=rank_y_plus,
+    fields, terminal_status = build_status_fields(
+        t=t,
+        m=m,
+        thm2=thm2,
+        s_sorted=s_sorted,
         j_max=j_max,
+        tight_count=tight_count,
+        tight_rank=tight_rank,
+        feasible_tight_count=feasible_tight_count,
+        feasible_tight_rank=feasible_tight_rank,
+        alldiff=alldiff,
+        a_coeffs=a_coeffs,
+        d_m_s=d_m_s,
+        rhs_value=rhs_value,
+        sssp=sssp,
+        tier_results=tier_results,
+        use_lift=use_lift,
         use_relaxation=use_relaxation,
         facet_label=facet_label,
     )
-    return (
-        f"{current}/{total} "
-        f"t={t}, m={m}, thm2={thm2}, S={plain_set(s_sorted)}, floor(t/2)={j_max}, "
-        f"N={n_check}, rank(Y+)={rank_y_plus}, alldiff={alldiff}, d_m(|S|)={d_m_s}, rhs={rhs_value}, "
-        f"maxLHS={max_lhs}, "
-        f"a'y=({coeffs_str})'y, SSSP={sssp}, ineq={mode}, "
-        f"{terminal_status}"
+    return format_status_fields(
+        fields,
+        terminal_status,
+        prefix=progress_prefix(current, total, include_progress_prefix),
     )
 
 
@@ -944,7 +1087,9 @@ def compute_summary(
     use_recipe: bool,
     use_relaxation: bool,
     use_lift: bool,
-    show_progress: bool = True,
+    show_progress: bool = False,
+    print_final_status: bool = False,
+    include_progress_prefix: bool = False,
     facet_label: str | None = None,
 ) -> dict:
     s_size = len(s_set)
@@ -970,7 +1115,6 @@ def compute_summary(
     )
     a_coeffs = inequality.coeffs
     rhs_value = inequality.rhs
-    jump_overlap_count = {jump: a_coeffs[idx] for idx, jump in enumerate(j_list)}
     if use_recipe:
         recipe_subsets = build_recipe_jump_sets(
             j_list=j_list,
@@ -985,6 +1129,27 @@ def compute_summary(
     graph_data: list[GraphRecord] = []
     last_status_len = 0
     if sssp == "0":
+        tier_results = (False, None, None, None, None)
+        status_fields, terminal_status = build_status_fields(
+            t=t,
+            m=m,
+            thm2=thm2,
+            s_sorted=s_sorted,
+            j_max=j_max,
+            tight_count=None,
+            tight_rank=None,
+            feasible_tight_count=None,
+            feasible_tight_rank=None,
+            alldiff=alldiff,
+            a_coeffs=a_coeffs,
+            d_m_s=d_m_s,
+            rhs_value=rhs_value,
+            sssp=sssp,
+            tier_results=tier_results,
+            use_lift=use_lift,
+            use_relaxation=use_relaxation,
+            facet_label=facet_label,
+        )
         final_status = final_status_line(
             current=0,
             total=total_y_vectors,
@@ -993,18 +1158,22 @@ def compute_summary(
             thm2=thm2,
             s_sorted=s_sorted,
             j_max=j_max,
-            n_check=0,
-            rank_y_plus=0,
+            tight_count=None,
+            tight_rank=None,
+            feasible_tight_count=None,
+            feasible_tight_rank=None,
             alldiff=alldiff,
             a_coeffs=a_coeffs,
             d_m_s=d_m_s,
             rhs_value=rhs_value,
             sssp=sssp,
+            tier_results=tier_results,
             use_lift=use_lift,
             use_relaxation=use_relaxation,
+            include_progress_prefix=include_progress_prefix,
             facet_label=facet_label,
         )
-        if show_progress:
+        if print_final_status:
             print(final_status)
         return {
             "t": t,
@@ -1026,24 +1195,43 @@ def compute_summary(
             "total_y_vectors": total_y_vectors,
             "graph_data": [],
             "selected_graph_data": [],
+            "tight_graph_data": [],
+            "feasible_tight_graph_data": [],
             "use_recipe": use_recipe,
             "use_relaxation": use_relaxation,
             "use_lift": use_lift,
             "check_count": 0,
-            "check_indices": [],
+            "tight_count": None,
+            "tight_y_columns": [],
+            "tight_y_rows": [],
+            "tight_y_plus_columns": [],
+            "tight_y_plus_rows": [],
+            "tight_y_plus_rank": None,
+            "tight_y_plus_multiplier": None,
+            "feasible_tight_count": None,
+            "feasible_tight_y_columns": [],
+            "feasible_tight_y_rows": [],
+            "feasible_tight_y_plus_columns": [],
+            "feasible_tight_y_plus_rows": [],
+            "feasible_tight_y_plus_rank": None,
+            "feasible_tight_y_plus_multiplier": None,
             "check_y_columns": [],
             "y_rows": [],
             "y_plus_columns": [],
             "y_plus_rows": [],
-            "y_plus_rank": 0,
+            "y_plus_rank": None,
             "y_plus_multiplier": None,
-            "status": terminal_status_label(0, j_max, use_relaxation, facet_label=facet_label),
+            "tier_results": tier_results,
+            "status": terminal_status,
+            "status_fields": status_fields,
+            "terminal_status": terminal_status,
+            "final_progress_prefix": progress_prefix(0, total_y_vectors, include_progress_prefix),
             "final_status_line": final_status,
         }
 
+    progress_tight_count = 0
+    progress_feasible_tight_count: int | None = 0 if use_relaxation else None
     if use_recipe:
-        progress_check_count = 0
-
         for graph_idx, jumps_l in enumerate(recipe_subsets, start=1):
             overlap_count = linear_form_value(raw_coeffs, jumps_l, jump_to_idx)
             lhs_value = linear_form_value(a_coeffs, jumps_l, jump_to_idx)
@@ -1058,9 +1246,10 @@ def compute_summary(
                 raise ValueError(
                     f"recipe produced an infeasible jump set {plain_set(sorted(jumps_l))}"
                 )
-            is_minimal = mark_ok and all(jump_overlap_count.get(jump, 0) > 0 for jump in jumps_l)
-            if mark_ok and is_feasible:
-                progress_check_count += 1
+            if mark_ok:
+                progress_tight_count += 1
+            if use_relaxation and mark_ok and is_feasible and progress_feasible_tight_count is not None:
+                progress_feasible_tight_count += 1
             graph_data.append(
                 GraphRecord(
                     idx=graph_idx,
@@ -1068,7 +1257,6 @@ def compute_summary(
                     lhs_value=lhs_value,
                     overlap_count=overlap_count,
                     mark_ok=mark_ok,
-                    is_minimal=is_minimal,
                     is_feasible=is_feasible,
                 )
             )
@@ -1082,23 +1270,23 @@ def compute_summary(
                     thm2=thm2,
                     s_sorted=s_sorted,
                     j_max=j_max,
-                    n_check=progress_check_count,
+                    tight_count=progress_tight_count,
+                    feasible_tight_count=progress_feasible_tight_count,
+                    use_relaxation=use_relaxation,
                 )
                 last_status_len = print_in_place(current_status, last_status_len)
-
-        selected_graphs = graph_data
     else:
         subsets = all_nonempty_jump_sets(j_list)
-        progress_check_count = 0
 
         for graph_idx, jumps_l in enumerate(subsets, start=1):
             overlap_count = linear_form_value(raw_coeffs, jumps_l, jump_to_idx)
             lhs_value = linear_form_value(a_coeffs, jumps_l, jump_to_idx)
             mark_ok = lhs_value == rhs_value
-            is_feasible = True if use_relaxation else is_m_clique_free(t, jumps_l, m)
-            is_minimal = mark_ok and all(jump_overlap_count.get(jump, 0) > 0 for jump in jumps_l)
-            if mark_ok and is_feasible:
-                progress_check_count += 1
+            is_feasible = True if use_relaxation else None
+            if mark_ok:
+                progress_tight_count += 1
+            if use_relaxation and mark_ok and is_feasible and progress_feasible_tight_count is not None:
+                progress_feasible_tight_count += 1
             graph_data.append(
                 GraphRecord(
                     idx=graph_idx,
@@ -1106,7 +1294,6 @@ def compute_summary(
                     lhs_value=lhs_value,
                     overlap_count=overlap_count,
                     mark_ok=mark_ok,
-                    is_minimal=is_minimal,
                     is_feasible=is_feasible,
                 )
             )
@@ -1120,33 +1307,117 @@ def compute_summary(
                     thm2=thm2,
                     s_sorted=s_sorted,
                     j_max=j_max,
-                    n_check=progress_check_count,
+                    tight_count=progress_tight_count,
+                    feasible_tight_count=progress_feasible_tight_count,
+                    use_relaxation=use_relaxation,
                 )
                 last_status_len = print_in_place(current_status, last_status_len)
 
-        if use_relaxation:
-            selected_graphs = [entry for entry in graph_data if entry.mark_ok]
-        else:
-            selected_graphs = [
-                entry for entry in graph_data if entry.mark_ok and entry.is_feasible
+    tight_graphs = [entry for entry in graph_data if entry.mark_ok]
+    tight_count = len(tight_graphs)
+    tight_y_columns = [jump_y_vector(j_list, entry.jumps_l) for entry in tight_graphs]
+    tight_y_rows = matrix_rows_from_columns(tight_y_columns)
+    tight_y_plus_columns = [column + [1] for column in tight_y_columns]
+    tight_y_plus_rows = matrix_rows_from_columns(tight_y_plus_columns)
+    tight_y_plus_rank: int | None = None
+    tight_y_plus_multiplier: list[int] | list[float] | None = None
+
+    feasible_tight_graphs: list[GraphRecord] = []
+    feasible_tight_count: int | None = None
+    feasible_tight_y_columns: list[list[int]] = []
+    feasible_tight_y_rows: list[list[int]] = []
+    feasible_tight_y_plus_columns: list[list[int]] = []
+    feasible_tight_y_plus_rows: list[list[int]] = []
+    feasible_tight_y_plus_rank: int | None = None
+    feasible_tight_y_plus_multiplier: list[int] | list[float] | None = None
+
+    tier_1 = True
+    tier_2 = tight_count >= j_max
+    tier_3: bool | None = None
+    tier_4: bool | None = None
+    tier_5: bool | None = None
+
+    if tier_2:
+        (
+            tight_y_rows,
+            tight_y_plus_columns,
+            tight_y_plus_rows,
+            tight_y_plus_rank,
+            tight_y_plus_multiplier,
+        ) = matrix_data_from_columns(tight_y_columns, use_fraction=use_fraction)
+        tier_3 = tight_y_plus_rank == j_max
+        if not use_relaxation and tier_3:
+            feasible_tight_graphs = []
+            for entry in tight_graphs:
+                entry.is_feasible = is_m_clique_free(t, entry.jumps_l, m)
+                if entry.is_feasible:
+                    feasible_tight_graphs.append(entry)
+            feasible_tight_count = len(feasible_tight_graphs)
+            feasible_tight_y_columns = [
+                jump_y_vector(j_list, entry.jumps_l) for entry in feasible_tight_graphs
             ]
+            tier_4 = feasible_tight_count >= j_max
+            if tier_4:
+                (
+                    feasible_tight_y_rows,
+                    feasible_tight_y_plus_columns,
+                    feasible_tight_y_plus_rows,
+                    feasible_tight_y_plus_rank,
+                    feasible_tight_y_plus_multiplier,
+                ) = matrix_data_from_columns(
+                    feasible_tight_y_columns,
+                    use_fraction=use_fraction,
+                )
+                tier_5 = feasible_tight_y_plus_rank == j_max
 
-    check_indices = [entry.idx for entry in selected_graphs]
-    check_y_columns = [jump_y_vector(j_list, entry.jumps_l) for entry in selected_graphs]
-    check_count = len(selected_graphs)
+    if use_relaxation:
+        selected_graphs = tight_graphs
+        check_count = tight_count
+        check_y_columns = tight_y_columns
+        y_rows = tight_y_rows
+        y_plus_columns = tight_y_plus_columns
+        y_plus_rows = tight_y_plus_rows
+        y_plus_rank = tight_y_plus_rank
+        y_plus_multiplier = tight_y_plus_multiplier
+    elif tier_4 is not None:
+        selected_graphs = feasible_tight_graphs
+        check_count = feasible_tight_count if feasible_tight_count is not None else 0
+        check_y_columns = feasible_tight_y_columns
+        y_rows = feasible_tight_y_rows
+        y_plus_columns = feasible_tight_y_plus_columns
+        y_plus_rows = feasible_tight_y_plus_rows
+        y_plus_rank = feasible_tight_y_plus_rank
+        y_plus_multiplier = feasible_tight_y_plus_multiplier
+    else:
+        selected_graphs = tight_graphs
+        check_count = tight_count
+        check_y_columns = tight_y_columns
+        y_rows = tight_y_rows
+        y_plus_columns = tight_y_plus_columns
+        y_plus_rows = tight_y_plus_rows
+        y_plus_rank = tight_y_plus_rank
+        y_plus_multiplier = tight_y_plus_multiplier
 
-    y_plus_columns = [column + [1] for column in check_y_columns]
-    y_plus_rows = matrix_rows_from_columns(y_plus_columns)
-    y_plus_rank = matrix_rank(y_plus_rows, use_fraction=use_fraction)
-    y_plus_max_rank = (
-        min(len(y_plus_rows), len(y_plus_columns))
-        if y_plus_rows and y_plus_columns
-        else 0
-    )
-    y_plus_multiplier = (
-        nullspace_vector(y_plus_rows, use_fraction=use_fraction)
-        if y_plus_rank < y_plus_max_rank
-        else None
+    tier_results = (tier_1, tier_2, tier_3, tier_4, tier_5)
+    status_fields, terminal_status = build_status_fields(
+        t=t,
+        m=m,
+        thm2=thm2,
+        s_sorted=s_sorted,
+        j_max=j_max,
+        tight_count=tight_count,
+        tight_rank=tight_y_plus_rank,
+        feasible_tight_count=feasible_tight_count,
+        feasible_tight_rank=feasible_tight_y_plus_rank,
+        alldiff=alldiff,
+        a_coeffs=a_coeffs,
+        d_m_s=d_m_s,
+        rhs_value=rhs_value,
+        sssp=sssp,
+        tier_results=tier_results,
+        use_lift=use_lift,
+        use_relaxation=use_relaxation,
+        facet_label=facet_label,
     )
     final_status = final_status_line(
         current=total_y_vectors,
@@ -1156,19 +1427,23 @@ def compute_summary(
         thm2=thm2,
         s_sorted=s_sorted,
         j_max=j_max,
-        n_check=check_count,
-        rank_y_plus=y_plus_rank,
+        tight_count=tight_count,
+        tight_rank=tight_y_plus_rank,
+        feasible_tight_count=feasible_tight_count,
+        feasible_tight_rank=feasible_tight_y_plus_rank,
         alldiff=alldiff,
         a_coeffs=a_coeffs,
         d_m_s=d_m_s,
         rhs_value=rhs_value,
         sssp=sssp,
+        tier_results=tier_results,
         use_lift=use_lift,
         use_relaxation=use_relaxation,
+        include_progress_prefix=include_progress_prefix,
         facet_label=facet_label,
     )
-    if show_progress:
-        if total_y_vectors > 0:
+    if print_final_status:
+        if show_progress and total_y_vectors > 0:
             print_in_place(final_status, last_status_len)
         else:
             print(final_status, end="")
@@ -1194,22 +1469,40 @@ def compute_summary(
         "total_y_vectors": total_y_vectors,
         "graph_data": graph_data,
         "selected_graph_data": selected_graphs,
+        "tight_graph_data": tight_graphs,
+        "feasible_tight_graph_data": feasible_tight_graphs,
         "use_recipe": use_recipe,
         "use_relaxation": use_relaxation,
         "use_lift": use_lift,
         "check_count": check_count,
-        "check_indices": check_indices,
+        "tight_count": tight_count,
+        "tight_y_columns": tight_y_columns,
+        "tight_y_rows": tight_y_rows,
+        "tight_y_plus_columns": tight_y_plus_columns,
+        "tight_y_plus_rows": tight_y_plus_rows,
+        "tight_y_plus_rank": tight_y_plus_rank,
+        "tight_y_plus_multiplier": tight_y_plus_multiplier,
+        "feasible_tight_count": feasible_tight_count,
+        "feasible_tight_y_columns": feasible_tight_y_columns,
+        "feasible_tight_y_rows": feasible_tight_y_rows,
+        "feasible_tight_y_plus_columns": feasible_tight_y_plus_columns,
+        "feasible_tight_y_plus_rows": feasible_tight_y_plus_rows,
+        "feasible_tight_y_plus_rank": feasible_tight_y_plus_rank,
+        "feasible_tight_y_plus_multiplier": feasible_tight_y_plus_multiplier,
         "check_y_columns": check_y_columns,
-        "y_rows": matrix_rows_from_columns(check_y_columns),
+        "y_rows": y_rows,
         "y_plus_columns": y_plus_columns,
         "y_plus_rows": y_plus_rows,
         "y_plus_rank": y_plus_rank,
         "y_plus_multiplier": y_plus_multiplier,
-        "status": terminal_status_label(
-            y_plus_rank,
-            j_max,
-            use_relaxation,
-            facet_label=facet_label,
+        "tier_results": tier_results,
+        "status": terminal_status,
+        "status_fields": status_fields,
+        "terminal_status": terminal_status,
+        "final_progress_prefix": progress_prefix(
+            total_y_vectors,
+            total_y_vectors,
+            include_progress_prefix,
         ),
         "final_status_line": final_status,
     }
@@ -1309,8 +1602,7 @@ def graph_cell_tex(
     lhs_value: int,
     overlap_with_s: int,
     mark_ok: bool,
-    is_minimal: bool,
-    is_feasible: bool,
+    is_feasible: bool | None,
     use_relaxation: bool,
     use_lift: bool,
     width: str = "0.31\\textwidth",
@@ -1354,15 +1646,13 @@ def graph_cell_tex(
         if mark_ok
         else r"\textcolor{red}{\boldsymbol{\times}}"
     )
-    if mark_ok and is_minimal:
-        mark_symbol += r"\;\textbf{MIN}"
-    if not use_relaxation and not is_feasible:
-        mark_symbol += r"\;\textcolor{red}{\textbf{INFEASIBLE}}"
     if use_lift:
         lines.append(rf"\par $a^\top y={lhs_value}\;\;{mark_symbol}$")
         lines.append(rf"\par $|E(L)\cap E(S)|={overlap_with_s}$")
     else:
         lines.append(rf"\par $|E(L)\cap E(S)|={lhs_value}\;\;{mark_symbol}$")
+    if not use_relaxation and is_feasible is False:
+        lines.append(r"\par \textcolor{red}{\textbf{INFEASIBLE}}")
     lines.append(r"\end{minipage}")
     return "\n".join(lines)
 
@@ -1382,16 +1672,22 @@ def build_document(summary: dict, cols: int, show_all_graphs: bool) -> str:
     pair_count = summary["pair_count"]
     lift_cap = summary["lift_cap"]
     graph_data = summary["graph_data"]
-    selected_graph_data = summary["selected_graph_data"]
+    tight_graph_data = summary["tight_graph_data"]
+    feasible_tight_graph_data = summary["feasible_tight_graph_data"]
     use_recipe = summary["use_recipe"]
     use_relaxation = summary["use_relaxation"]
     use_lift = summary["use_lift"]
-    check_count = summary["check_count"]
-    check_indices = summary["check_indices"]
-    check_y_columns = summary["check_y_columns"]
-    y_plus_columns = summary["y_plus_columns"]
-    y_plus_rank = summary["y_plus_rank"]
-    y_plus_multiplier = summary["y_plus_multiplier"]
+    tight_count = summary["tight_count"]
+    tight_y_columns = summary["tight_y_columns"]
+    tight_y_plus_columns = summary["tight_y_plus_columns"]
+    tight_y_plus_rank = summary["tight_y_plus_rank"]
+    tight_y_plus_multiplier = summary["tight_y_plus_multiplier"]
+    feasible_tight_count = summary["feasible_tight_count"]
+    feasible_tight_y_columns = summary["feasible_tight_y_columns"]
+    feasible_tight_y_plus_columns = summary["feasible_tight_y_plus_columns"]
+    feasible_tight_y_plus_rank = summary["feasible_tight_y_plus_rank"]
+    feasible_tight_y_plus_multiplier = summary["feasible_tight_y_plus_multiplier"]
+    tier_results = summary["tier_results"]
     status = summary["status"]
     s_set = set(s_sorted)
 
@@ -1399,9 +1695,19 @@ def build_document(summary: dict, cols: int, show_all_graphs: bool) -> str:
         display_graphs = graph_data
     else:
         display_graphs = [entry for entry in graph_data if entry.mark_ok]
-    max_matrix_cols = max(10, len(check_y_columns), len(y_plus_columns))
+    max_matrix_cols = max(
+        10,
+        len(tight_y_columns),
+        len(tight_y_plus_columns),
+        len(feasible_tight_y_columns),
+        len(feasible_tight_y_plus_columns),
+    )
     mode_label = "lifted" if use_lift else "standard"
     feasibility_label = "relax" if use_relaxation else "strict"
+    tiers_str = ",".join(gate_symbol(result) for result in tier_results)
+    tight_rank_str = gate_ratio(tight_y_plus_rank, j_max)
+    feasible_count_str = gate_ratio(feasible_tight_count, j_max)
+    feasible_rank_str = gate_ratio(feasible_tight_y_plus_rank, j_max)
 
     doc: list[str] = []
     doc.append(r"\documentclass[11pt]{article}")
@@ -1423,9 +1729,15 @@ def build_document(summary: dict, cols: int, show_all_graphs: bool) -> str:
     doc.append(r"\end{center}")
     doc.append(rf"$J={latex_set(j_list)}$")
     doc.append(r"\quad\quad")
-    doc.append(rf"$N={check_count}$")
+    doc.append(rf"$\text{{chk}}=({tiers_str})$")
     doc.append(r"\quad\quad")
-    doc.append(rf"$\operatorname{{rank}}(Y^{{+}})={y_plus_rank}$")
+    doc.append(rf"$N_{{\mathrm{{tight}}}}={gate_ratio(tight_count, j_max)}$")
+    doc.append(r"\quad\quad")
+    doc.append(rf"$\operatorname{{rank}}(Y_{{\mathrm{{tight}}}}^{{+}})={tight_rank_str}$")
+    doc.append(r"\quad\quad")
+    doc.append(rf"$N_{{\mathrm{{feas}}}}={feasible_count_str}$")
+    doc.append(r"\quad\quad")
+    doc.append(rf"$\operatorname{{rank}}(Y_{{\mathrm{{feas}}}}^{{+}})={feasible_rank_str}$")
     doc.append(r"\quad\quad")
     doc.append(rf"$\text{{mode}}=\text{{{mode_label}}}$")
     doc.append(r"\quad\quad")
@@ -1475,8 +1787,10 @@ def build_document(summary: dict, cols: int, show_all_graphs: bool) -> str:
             r"$\textcolor{red}{\boldsymbol{\times}}$."
         )
     doc.append(
-        r"When a checked graph is minimal under single-jump deletion, we append "
-        r"$\textbf{MIN}$ right after the checkmark."
+        r"The gate vector is "
+        r"$(\mathrm{SSSP},\ \#\mathrm{tight},\ \operatorname{rank}(Y_{\mathrm{tight}}^+),\ "
+        r"\#\mathrm{feas\ tight},\ \operatorname{rank}(Y_{\mathrm{feas}}^+))$, "
+        r"and a dash means the gate was not checked because an earlier one failed."
     )
     if not use_relaxation:
         doc.append(
@@ -1518,7 +1832,6 @@ def build_document(summary: dict, cols: int, show_all_graphs: bool) -> str:
                         lhs_value=entry.lhs_value,
                         overlap_with_s=entry.overlap_count,
                         mark_ok=entry.mark_ok,
-                        is_minimal=entry.is_minimal,
                         is_feasible=entry.is_feasible,
                         use_relaxation=use_relaxation,
                         use_lift=use_lift,
@@ -1529,23 +1842,29 @@ def build_document(summary: dict, cols: int, show_all_graphs: bool) -> str:
 
     doc.append(r"")
     doc.append(r"\noindent\textbf{Matrix Data}")
-    doc.append(rf"\par $N={check_count}$")
-    doc.append(rf"\par $a={latex_tuple(a_coeffs)}$")
-    doc.append(rf"\par $\mathrm{{rhs}}={rhs_value}$")
+    doc.append(rf"\par $Y_{{\mathrm{{tight}}}}={latex_matrix_from_columns(tight_y_columns)}$")
     doc.append(
-        rf"\par $I={latex_set(check_indices)}$"
+        rf"\par $Y_{{\mathrm{{tight}}}}^{{+}}={latex_matrix_from_columns(tight_y_plus_columns)}$"
         r"\quad"
-        rf"$Y={latex_matrix_from_columns(check_y_columns)}$"
+        rf"$\operatorname{{rank}}(Y_{{\mathrm{{tight}}}}^{{+}})={tight_rank_str}$"
     )
-    doc.append(
-        rf"\par $Y^{{+}}={latex_matrix_from_columns(y_plus_columns)}$"
-        r"\quad"
-        rf"$\operatorname{{rank}}(Y^{{+}})={y_plus_rank}$"
-    )
-    if y_plus_multiplier is not None:
+    if tight_y_plus_multiplier is not None:
         doc.append(
-            r"\par $Y^{+}\lambda=\mathbf{0}$ with "
-            rf"$\lambda={latex_column_vector(y_plus_multiplier)}$"
+            r"\par $Y_{\mathrm{tight}}^{+}\lambda=\mathbf{0}$ with "
+            rf"$\lambda={latex_column_vector(tight_y_plus_multiplier)}$"
+        )
+    doc.append(
+        rf"\par $Y_{{\mathrm{{feas}}}}={latex_matrix_from_columns(feasible_tight_y_columns)}$"
+    )
+    doc.append(
+        rf"\par $Y_{{\mathrm{{feas}}}}^{{+}}={latex_matrix_from_columns(feasible_tight_y_plus_columns)}$"
+        r"\quad"
+        rf"$\operatorname{{rank}}(Y_{{\mathrm{{feas}}}}^{{+}})={feasible_rank_str}$"
+    )
+    if feasible_tight_y_plus_multiplier is not None:
+        doc.append(
+            r"\par $Y_{\mathrm{feas}}^{+}\lambda=\mathbf{0}$ with "
+            rf"$\lambda={latex_column_vector(feasible_tight_y_plus_multiplier)}$"
         )
 
     doc.append(r"\end{document}")
@@ -1586,6 +1905,52 @@ def clean_latex_garbage(tex_path: Path, verbose: bool = True) -> None:
             removed += 1
     if removed > 0 and verbose:
         print(f"Latex garbage cleaned ({removed} files)")
+
+
+def show_pdf(pdf_path: Path, verbose: bool = True) -> bool:
+    if not pdf_path.is_file():
+        if verbose:
+            print(f"PDF {pdf_path} not found; skipping display.")
+        return False
+
+    try:
+        if sys.platform == "darwin":
+            subprocess.Popen(
+                ["open", str(pdf_path)],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                start_new_session=True,
+            )
+        elif os.name == "nt":
+            os.startfile(str(pdf_path))
+        else:
+            subprocess.Popen(
+                ["xdg-open", str(pdf_path)],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                start_new_session=True,
+            )
+        if verbose:
+            print(f"Displayed {pdf_path}")
+        return True
+    except FileNotFoundError:
+        if verbose:
+            print("No PDF opener found; skipping display.")
+        return False
+    except OSError as exc:
+        if verbose:
+            print(f"Could not display {pdf_path}: {exc}")
+        return False
+
+
+def wait_for_show_command() -> None:
+    while True:
+        response = input("Press Enter for next PDF, q to stop: ").strip().lower()
+        if response == "":
+            return
+        if response == "q":
+            raise SystemExit(0)
+        print("Press Enter to continue or q to stop.")
 
 
 def normalize_output_path(path: Path) -> Path:
@@ -1653,6 +2018,7 @@ def write_latex_output(
     cols: int,
     show_all_graphs: bool,
     verbose: bool,
+    show_pdf_after: bool,
 ) -> None:
     tex = build_document(summary, cols, show_all_graphs)
     output.write_text(tex, encoding="utf-8")
@@ -1661,6 +2027,10 @@ def write_latex_output(
         print(f"Wrote {output}")
     compile_tex(resolved_output, verbose=verbose)
     clean_latex_garbage(resolved_output, verbose=verbose)
+    if show_pdf_after:
+        pdf_path = resolved_output.with_suffix(".pdf")
+        if show_pdf(pdf_path, verbose=verbose):
+            wait_for_show_command()
 
 
 def run_analysis_case(
@@ -1668,6 +2038,8 @@ def run_analysis_case(
     args: argparse.Namespace,
     use_lift: bool,
     show_progress: bool,
+    print_final_status: bool,
+    include_progress_prefix: bool,
     multi_case: bool,
     facet_label: str | None = None,
 ) -> dict:
@@ -1680,6 +2052,8 @@ def run_analysis_case(
         use_relaxation=args.relaxation,
         use_lift=use_lift,
         show_progress=show_progress,
+        print_final_status=print_final_status,
+        include_progress_prefix=include_progress_prefix,
         facet_label=facet_label,
     )
     if args.latex:
@@ -1689,7 +2063,8 @@ def run_analysis_case(
             output,
             cols=args.cols,
             show_all_graphs=args.show_all_graphs,
-            verbose=show_progress,
+            verbose=print_final_status,
+            show_pdf_after=args.show,
         )
     return summary
 
@@ -1697,7 +2072,20 @@ def run_analysis_case(
 def case_error_line(
     case: AnalysisCase,
     use_lift: bool,
+    include_progress_prefix: bool,
 ) -> str:
+    fields, terminal_status = case_error_fields(case, use_lift=use_lift)
+    return format_status_fields(
+        fields,
+        terminal_status,
+        prefix="-/- " if include_progress_prefix else "",
+    )
+
+
+def case_error_fields(
+    case: AnalysisCase,
+    use_lift: bool,
+) -> tuple[list[tuple[str, str]], str]:
     s_set = set(case.s_values)
     s_size = len(s_set)
     thm2 = thm2_value(s_size, case.m)
@@ -1722,42 +2110,59 @@ def case_error_line(
     a_coeffs = inequality.coeffs
     rhs_value = inequality.rhs
     sssp = sssp_value(a_coeffs, rhs_value)
-    coeffs_str = ",".join(str(value) for value in a_coeffs)
-    max_lhs = sum(a_coeffs)
-    mode = "lifted" if use_lift else "standard"
-    return (
-        f"-/- "
-        f"t={case.t}, m={case.m}, thm2={thm2}, S={plain_set(list(case.s_values))}, floor(t/2)={j_max}, "
-        f"N=-, rank(Y+)=-, alldiff={alldiff}, d_m(|S|)={d_m_s}, rhs={rhs_value}, "
-        f"maxLHS={max_lhs}, a'y=({coeffs_str})'y, SSSP={sssp}, ineq={mode}, ERROR"
+    fields, _ = build_status_fields(
+        t=case.t,
+        m=case.m,
+        thm2=thm2,
+        s_sorted=list(case.s_values),
+        j_max=j_max,
+        tight_count=None,
+        tight_rank=None,
+        feasible_tight_count=None,
+        feasible_tight_rank=None,
+        alldiff=alldiff,
+        a_coeffs=a_coeffs,
+        d_m_s=d_m_s,
+        rhs_value=rhs_value,
+        sssp=sssp,
+        tier_results=(None, None, None, None, None),
+        use_lift=use_lift,
+        use_relaxation=False,
     )
+    return fields, "ERROR"
 
 
 def run_single_mode(case: AnalysisCase, args: argparse.Namespace) -> None:
     if args.lift_mode == "addlifted":
         failures = 0
         try:
-            run_analysis_case(case, args, use_lift=False, show_progress=True, multi_case=False)
+            run_analysis_case(
+                case,
+                args,
+                use_lift=False,
+                show_progress=args.progress,
+                print_final_status=True,
+                include_progress_prefix=args.progress,
+                multi_case=False,
+            )
         except Exception:
             failures += 1
-            print(case_error_line(case, use_lift=False))
-            if args.stop_on_error:
-                raise
+            print(case_error_line(case, use_lift=False, include_progress_prefix=args.progress))
 
         try:
             run_analysis_case(
                 case,
                 args,
                 use_lift=True,
-                show_progress=True,
+                show_progress=args.progress,
+                print_final_status=True,
+                include_progress_prefix=args.progress,
                 multi_case=False,
                 facet_label="FACET+",
             )
         except Exception:
             failures += 1
-            print(case_error_line(case, use_lift=True))
-            if args.stop_on_error:
-                raise
+            print(case_error_line(case, use_lift=True, include_progress_prefix=args.progress))
 
         if failures > 0:
             raise SystemExit(1)
@@ -1769,24 +2174,29 @@ def run_single_mode(case: AnalysisCase, args: argparse.Namespace) -> None:
             case,
             args,
             use_lift=use_lift,
-            show_progress=True,
+            show_progress=args.progress,
+            print_final_status=True,
+            include_progress_prefix=args.progress,
             multi_case=False,
         )
     except Exception:
-        print(case_error_line(case, use_lift=use_lift))
-        if args.stop_on_error:
-            raise
+        print(case_error_line(case, use_lift=use_lift, include_progress_prefix=args.progress))
         raise SystemExit(1)
 
 
 def run_multi_mode(cases: list[AnalysisCase], args: argparse.Namespace) -> int:
     failures = 0
+    rendered_lines: list[tuple[str, list[tuple[str, str]], str]] = []
 
     for case in cases:
         if args.lift_mode == "addlifted":
             standard_summary: dict | None = None
-            standard_line: str
-            lifted_line: str
+            standard_fields: list[tuple[str, str]]
+            standard_status: str
+            standard_prefix: str
+            lifted_fields: list[tuple[str, str]]
+            lifted_status: str
+            lifted_prefix: str
 
             try:
                 standard_summary = run_analysis_case(
@@ -1794,17 +2204,20 @@ def run_multi_mode(cases: list[AnalysisCase], args: argparse.Namespace) -> int:
                     args,
                     use_lift=False,
                     show_progress=False,
+                    print_final_status=False,
+                    include_progress_prefix=args.progress,
                     multi_case=True,
                 )
-                standard_line = standard_summary["final_status_line"]
+                standard_fields = standard_summary["status_fields"]
+                standard_status = standard_summary["terminal_status"]
+                standard_prefix = standard_summary["final_progress_prefix"]
             except Exception as exc:
                 failures += 1
-                standard_line = case_error_line(
+                standard_fields, standard_status = case_error_fields(
                     case,
                     use_lift=False,
                 )
-                if args.stop_on_error:
-                    raise
+                standard_prefix = "-/- " if args.progress else ""
 
             try:
                 lifted_summary = run_analysis_case(
@@ -1812,21 +2225,24 @@ def run_multi_mode(cases: list[AnalysisCase], args: argparse.Namespace) -> int:
                     args,
                     use_lift=True,
                     show_progress=False,
+                    print_final_status=False,
+                    include_progress_prefix=args.progress,
                     multi_case=True,
                     facet_label="FACET+",
                 )
-                lifted_line = lifted_summary["final_status_line"]
+                lifted_fields = lifted_summary["status_fields"]
+                lifted_status = lifted_summary["terminal_status"]
+                lifted_prefix = lifted_summary["final_progress_prefix"]
             except Exception as exc:
                 failures += 1
-                lifted_line = case_error_line(
+                lifted_fields, lifted_status = case_error_fields(
                     case,
                     use_lift=True,
                 )
-                if args.stop_on_error:
-                    raise
+                lifted_prefix = "-/- " if args.progress else ""
 
-            print(standard_line)
-            print(lifted_line)
+            rendered_lines.append((standard_prefix, standard_fields, standard_status))
+            rendered_lines.append((lifted_prefix, lifted_fields, lifted_status))
             continue
 
         use_lift = args.lift_mode == "lifted"
@@ -1836,27 +2252,46 @@ def run_multi_mode(cases: list[AnalysisCase], args: argparse.Namespace) -> int:
                 args,
                 use_lift=use_lift,
                 show_progress=False,
+                print_final_status=False,
+                include_progress_prefix=args.progress,
                 multi_case=True,
             )
-            print(summary["final_status_line"])
-        except Exception as exc:
-            failures += 1
-            print(
-                case_error_line(
-                    case,
-                    use_lift=use_lift,
+            rendered_lines.append(
+                (
+                    summary["final_progress_prefix"],
+                    summary["status_fields"],
+                    summary["terminal_status"],
                 )
             )
-            if args.stop_on_error:
-                raise
+        except Exception as exc:
+            failures += 1
+            error_fields, error_status = case_error_fields(
+                case,
+                use_lift=use_lift,
+            )
+            rendered_lines.append(
+                (
+                    "-/- " if args.progress else "",
+                    error_fields,
+                    error_status,
+                )
+            )
+
+    widths = status_field_widths([fields for _, fields, _ in rendered_lines])
+    for prefix, fields, terminal_status in rendered_lines:
+        print(format_status_fields(fields, terminal_status, widths=widths, prefix=prefix))
 
     return failures
 
 
 def main() -> None:
     args = parse_args()
+    if args.show:
+        args.latex = True
     if args.latex and args.cols < 1:
         raise ValueError("--cols must be at least 1.")
+    if args.recipe and not args.relaxation:
+        raise ValueError("--recipe requires --relax.")
 
     cases = resolve_analysis_cases(args)
     multi_case = len(cases) > 1
