@@ -8,6 +8,16 @@ __pycache__/
 *.aux
 *.log
 *.pdf
+*.synctex.gz
+*.dvi
+*.xdv
+*.fls
+*.fdb_latexmk
+*.out
+*.toc
+*.bbl
+*.blg
+build/
 
 # Misc
 trash/
